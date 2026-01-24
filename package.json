@@ -4,7 +4,11 @@
 	"type": "module",
 	"private": true,
 	"scripts": {
-		"start": "bun run index.ts" 
+		"fix": "bun run format && bun run check && bun run lint",
+		"check": "bun x @biomejs/biome check --fix .",
+		"format": "bun x @biomejs/biome format --fix .",
+		"lint": "bun x @biomejs/biome lint --fix .",
+		"start": "bun run index.ts"
 	},
 	"devDependencies": {
 		"@types/bun": "latest"
