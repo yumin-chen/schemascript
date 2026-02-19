@@ -1,6 +1,9 @@
 # dependencies (bun install)
 node_modules
 
+# SQLite DB
+storage/*.db
+
 # output
 out
 dist
