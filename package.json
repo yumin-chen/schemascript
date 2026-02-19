@@ -1,6 +1,6 @@
 {
 	"name": "artefact",
-	"module": "index.ts",
+	"module": "src/main.ts",
 	"type": "module",
 	"private": true,
 	"scripts": {
@@ -8,7 +8,7 @@
 		"check": "bun x @biomejs/biome check --fix .",
 		"format": "bun x @biomejs/biome format --fix .",
 		"lint": "bun x @biomejs/biome lint --fix .",
-		"start": "bun run index.ts"
+		"start": "bun run src/main.ts"
 	},
 	"devDependencies": {
 		"@types/bun": "latest"
