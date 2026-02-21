@@ -1,6 +1,9 @@
 # dependencies (bun install)
 node_modules
 
+# rust dependencies
+target
+
 # output
 out
 dist
