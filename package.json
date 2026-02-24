@@ -1,0 +1,16 @@
+{
+	"name": "artefact",
+	"module": "src/main.ts",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"format": "bunx @biomejs/biome format --write .",
+		"start": "bun run src/main.ts"
+	},
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5.9.3"
+	}
+}
