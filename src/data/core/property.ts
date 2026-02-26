@@ -78,7 +78,24 @@ class Property<DataType extends string, TData = unknown, TConfig = unknown> {
 	}
 
 	toString(): string {
-		return this._type;
+		const name = this.name ?? "unnamed";
+		const identifier = this.isIdentifier ? ".identifier()" : "";
+		const optional = this.isOptional ? ".optional()" : "";
+		const unique = this.isUnique ? ".unique()" : "";
+		const defaultVal = this.hasDefault
+			? `.default(${typeof this.defaultValue === "bigint" ? this.defaultValue.toString() : JSON.stringify(this.defaultValue)})`
+			: "";
+
+		if (this._type === "enum") {
+			const config = this.config as { options?: string[] } | undefined;
+			const options = config?.options;
+			if (options && Array.isArray(options)) {
+				const values = options.map((v) => `\t\t\t"${v}",`).join("\n");
+				return `enum("${name}",\n    {   options:\n\t\t[\n${values}\n\t\t]\n\t}\n   )${identifier}${optional}${unique}${defaultVal}`;
+			}
+		}
+
+		return `${this._type}("${name}")${identifier}${optional}${unique}${defaultVal}`;
 	}
 
 	toJSON() {
