@@ -8,7 +8,7 @@
 		"check": "bun x @biomejs/biome check --fix .",
 		"format": "bun x @biomejs/biome format --fix .",
 		"lint": "bun x @biomejs/biome lint --fix .",
-		"build:sql": "BUILD_TARGET=SQLite && bun x drizzle-kit generate --dialect sqlite --schema ./src/data/schemas/index.ts",
+		"build:sql": "BUILD_TARGET=SQLite drizzle-kit generate --dialect sqlite --schema ./src/data/schemas/index.ts",
 		"start": "bun run src/main.ts"
 	},
 	"devDependencies": {
