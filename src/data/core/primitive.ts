@@ -1,4 +1,4 @@
-import type { SQL } from "./constant";
+import type { SQL } from "./_constant";
 import { Property } from "./property";
 
 const integer = new Property<"integer", bigint | string | SQL, unknown>(

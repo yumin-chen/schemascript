@@ -1,4 +1,4 @@
-import { Constant as Value } from "./constant" with { type: "macro" };
+import { Constant as Value } from "./_constant" with { type: "macro" };
 
 const value = Value();
 
