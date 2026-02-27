@@ -2,6 +2,8 @@ import type { FieldBuilder } from "./field";
 import { field } from "./field";
 import type { Property } from "./property";
 
+declare const __host_predict_call: (prompt: string, schema: string) => string;
+
 function Schema<TName extends string>(
 	name: TName,
 	schemaBuilder: SchemaBuilder,
@@ -56,13 +58,10 @@ function Schema<TName extends string>(
 
 		async predict(prompt: string) {
 			const schemaJson = JSON.stringify(this.toJSON());
-			const response = (globalThis as any).__host_predict_call(
-				prompt,
-				schemaJson,
-			);
+			const response = __host_predict_call(prompt, schemaJson);
 			try {
 				return JSON.parse(response);
-			} catch (e) {
+			} catch (_e) {
 				return response;
 			}
 		},

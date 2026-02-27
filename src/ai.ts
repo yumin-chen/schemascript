@@ -2,6 +2,12 @@
  * AI Utilities for the Artefact Runtime.
  */
 
+declare const __host_categorise_call: (
+	content: string,
+	choices: string[],
+) => string;
+declare const __host_predict_call: (content: string, schema: string) => string;
+
 /**
  * Categorise input text into one of the provided choices.
  * This is a high-level API built on top of the host's categorise capability.
@@ -10,9 +16,12 @@
  * @param choices An array of strings representing the possible categories.
  * @returns The category that best matches the input.
  */
-export async function categorise(content: string, choices: string[]): Promise<string> {
-    const response = (globalThis as any).__host_categorise_call(content, choices);
-    return response;
+export async function categorise(
+	content: string,
+	choices: string[],
+): Promise<string> {
+	const response = __host_categorise_call(content, choices);
+	return response;
 }
 
 /**
@@ -23,8 +32,12 @@ export async function categorise(content: string, choices: string[]): Promise<st
  * @param schema A JSON schema or description guiding the output structure.
  * @returns A JSON-formatted string (or object if parsed by the caller).
  */
-export async function predict(content: string, schema: string | object): Promise<string> {
-    const schemaStr = typeof schema === 'string' ? schema : JSON.stringify(schema);
-    const response = (globalThis as any).__host_predict_call(content, schemaStr);
-    return response;
+export async function predict(
+	content: string,
+	schema: string | object,
+): Promise<string> {
+	const schemaStr =
+		typeof schema === "string" ? schema : JSON.stringify(schema);
+	const response = __host_predict_call(content, schemaStr);
+	return response;
 }

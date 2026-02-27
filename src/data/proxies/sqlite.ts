@@ -1,3 +1,4 @@
+import type { SQL } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 import {
 	blob,
@@ -68,4 +69,5 @@ export {
 	sqliteTable,
 	text,
 	sql,
+	type SQL,
 };
