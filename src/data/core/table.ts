@@ -7,7 +7,7 @@ function Table<TName extends string>(
 	name: TName,
 	schemaBuilder: SchemaBuilder,
 ) {
-	const fields = schemaBuilder(field());
+	const fields = schemaBuilder(field);
 	const sqliteColumns: Record<string, primitive> = {};
 
 	for (const [key, prop] of Object.entries(fields)) {

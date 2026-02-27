@@ -6,7 +6,7 @@ function Schema<TName extends string>(
 	name: TName,
 	schemaBuilder: SchemaBuilder,
 ) {
-	const fields = schemaBuilder(field());
+	const fields = schemaBuilder(field);
 
 	const schema = {
 		_name: name,
