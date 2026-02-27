@@ -36,6 +36,24 @@ impl JsHost {
 
             globals.set("__host_sqlite_call", host_call)?;
 
+            let chat_manager_for_predict = chat_clone.clone();
+            let predict_call = Function::new(ctx.clone(), move |content: String, schema: String| -> String {
+                match chat_manager_for_predict.predict(content, schema) {
+                    Ok(res) => res,
+                    Err(e) => format!("{{\"error\": \"Predict error: {}\"}}", e),
+                }
+            })?;
+            globals.set("__host_predict_call", predict_call.clone())?;
+
+            let chat_manager_for_categorise = chat_clone.clone();
+            let categorise_call = Function::new(ctx.clone(), move |content: String, choices: Vec<String>| -> String {
+                match chat_manager_for_categorise.categorise(content, choices) {
+                    Ok(res) => res,
+                    Err(e) => format!("{{\"error\": \"Categorise error: {}\"}}", e),
+                }
+            })?;
+            globals.set("__host_categorise_call", categorise_call.clone())?;
+
             let chat_obj = Object::new(ctx.clone())?;
             let chat_manager = chat_clone.clone();
             chat_obj.set(
@@ -50,6 +68,9 @@ impl JsHost {
                     },
                 )?,
             )?;
+
+            chat_obj.set("predict", predict_call)?;
+            chat_obj.set("categorise", categorise_call)?;
 
             globals.set("chat", chat_obj)?;
 

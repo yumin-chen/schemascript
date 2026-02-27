@@ -53,6 +53,19 @@ function Schema<TName extends string>(
 				),
 			};
 		},
+
+		async predict(prompt: string) {
+			const schemaJson = JSON.stringify(this.toJSON());
+			const response = (globalThis as any).__host_predict_call(
+				prompt,
+				schemaJson,
+			);
+			try {
+				return JSON.parse(response);
+			} catch (e) {
+				return response;
+			}
+		},
 	};
 
 	return schema;

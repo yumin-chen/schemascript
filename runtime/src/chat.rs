@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
-use crate::onnx_engine::OnnxEngine;
+use crate::onnx_engine::{OnnxEngine, ModelTask};
 use std::sync::{Arc, Mutex};
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -44,7 +44,7 @@ impl ChatManager {
         };
 
         // 1. Retrieve history and update it
-        let mut history = if let Some(ref id) = session_id {
+        let history = if let Some(ref id) = session_id {
             let mut sessions = self.sessions.lock().unwrap();
             let session = sessions.entry(id.clone()).or_insert(ChatSession { history: Vec::new() });
             session.history.push(user_message);
@@ -65,8 +65,7 @@ impl ChatManager {
             .join("\n");
 
         // 4. Run inference
-        // let response_content = self.engine.run_chat(&prompt)?;
-        let response_content = format!("Mock response to: {}", content);
+        let response_content = self.engine.run_inference(&prompt, ModelTask::Chat)?;
 
         let assistant_message = Message {
             role: "assistant".to_string(),
@@ -87,11 +86,28 @@ impl ChatManager {
         Ok(response_content)
     }
 
+    pub fn predict(&self, content: String, schema: String) -> anyhow::Result<String> {
+        let prompt = format!(
+            "Task: Generate structured JSON output based on the provided schema.\n\nInput: {}\n\nSchema: {}\n\nJSON Output:",
+            content, schema
+        );
+
+        let response = self.engine.run_inference(&prompt, ModelTask::Predict)?;
+        Ok(response)
+    }
+
+    pub fn categorise(&self, content: String, choices: Vec<String>) -> anyhow::Result<String> {
+        let prompt = format!(
+            "Task: Categorize the input into one of the following choices: {}\n\nInput: {}\n\nChoice:",
+            choices.join(", "), content
+        );
+
+        let response = self.engine.run_inference(&prompt, ModelTask::Categorise)?;
+        Ok(response)
+    }
+
     fn retrieve_context(&self, query: &str, session_id: Option<&str>) -> anyhow::Result<String> {
         let _embedding = self.engine.run_embedding(query)?;
-
-        // In a real implementation with sqlite-vss:
-        // SELECT content FROM chat_memory WHERE session_id = ? ORDER BY vss_distance(embedding, ?) LIMIT 3
 
         let result = smol::block_on(self.db.execute(crate::QueryPayload {
             sql: "SELECT content FROM chat_memory WHERE session_id = ? LIMIT 3".to_string(),

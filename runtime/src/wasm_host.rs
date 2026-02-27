@@ -154,6 +154,112 @@ fn host_chat_send_message(
     Ok(vec![WasmValue::from_i32(result_len)])
 }
 
+/// Real Implementation: host_predict_call
+fn host_predict_call(
+    frame: CallingFrame,
+    inputs: Vec<WasmValue>,
+    data: &mut Arc<Mutex<HostState>>,
+) -> WasmEdgeResult<Vec<WasmValue>> {
+    let content_ptr = inputs[0].to_i32() as u32;
+    let content_len = inputs[1].to_i32() as u32;
+    let schema_ptr = inputs[2].to_i32() as u32;
+    let schema_len = inputs[3].to_i32() as u32;
+
+    let mem = frame
+        .memory(0)
+        .ok_or(wasmedge_sdk::error::WasmEdgeError::Vm(
+            wasmedge_sdk::error::VmError::ExecuteFailed,
+        ))?;
+
+    let content = String::from_utf8_lossy(
+        &mem.read(content_ptr, content_len).map_err(|_| {
+            wasmedge_sdk::error::WasmEdgeError::Vm(wasmedge_sdk::error::VmError::ExecuteFailed)
+        })?,
+    )
+    .to_string();
+
+    let schema = String::from_utf8_lossy(
+        &mem.read(schema_ptr, schema_len).map_err(|_| {
+            wasmedge_sdk::error::WasmEdgeError::Vm(wasmedge_sdk::error::VmError::ExecuteFailed)
+        })?,
+    )
+    .to_string();
+
+    let chat = {
+        let state = data.lock().unwrap();
+        Arc::clone(&state.chat)
+    };
+
+    let result = match chat.predict(content, schema) {
+        Ok(r) => r,
+        Err(e) => format!("{{\"error\": \"Predict Error: {}\"}}", e),
+    };
+
+    let serialised = result.into_bytes();
+    let result_len = serialised.len() as i32;
+
+    {
+        let mut state = data.lock().unwrap();
+        state.last_result = serialised;
+    }
+
+    Ok(vec![WasmValue::from_i32(result_len)])
+}
+
+/// Real Implementation: host_categorise_call
+fn host_categorise_call(
+    frame: CallingFrame,
+    inputs: Vec<WasmValue>,
+    data: &mut Arc<Mutex<HostState>>,
+) -> WasmEdgeResult<Vec<WasmValue>> {
+    let content_ptr = inputs[0].to_i32() as u32;
+    let content_len = inputs[1].to_i32() as u32;
+    let choices_ptr = inputs[2].to_i32() as u32;
+    let choices_len = inputs[3].to_i32() as u32;
+
+    let mem = frame
+        .memory(0)
+        .ok_or(wasmedge_sdk::error::WasmEdgeError::Vm(
+            wasmedge_sdk::error::VmError::ExecuteFailed,
+        ))?;
+
+    let content = String::from_utf8_lossy(
+        &mem.read(content_ptr, content_len).map_err(|_| {
+            wasmedge_sdk::error::WasmEdgeError::Vm(wasmedge_sdk::error::VmError::ExecuteFailed)
+        })?,
+    )
+    .to_string();
+
+    let choices_json = String::from_utf8_lossy(
+        &mem.read(choices_ptr, choices_len).map_err(|_| {
+            wasmedge_sdk::error::WasmEdgeError::Vm(wasmedge_sdk::error::VmError::ExecuteFailed)
+        })?,
+    )
+    .to_string();
+
+    let choices: Vec<String> = serde_json::from_str(&choices_json).unwrap_or_default();
+
+    let chat = {
+        let state = data.lock().unwrap();
+        Arc::clone(&state.chat)
+    };
+
+    let result = match chat.categorise(content, choices) {
+        Ok(r) => r,
+        Err(e) => format!("Error: {}", e),
+    };
+
+    let serialised = result.into_bytes();
+    let result_len = serialised.len() as i32;
+
+    {
+        let mut state = data.lock().unwrap();
+        state.last_result = serialised;
+    }
+
+    Ok(vec![WasmValue::from_i32(result_len)])
+}
+
 pub fn create_vm(db: Arc<AsyncDatabase>, chat: Arc<ChatManager>) -> Result<wasmedge_sdk::Vm> {
     PluginManager::load_default_paths();
 
@@ -181,6 +287,16 @@ pub fn create_vm(db: Arc<AsyncDatabase>, chat: Arc<ChatManager>) -> Result<wasme
         .with_func::<(i32, i32, i32, i32), i32, Arc<Mutex<HostState>>>(
             "host_chat_send_message",
             host_chat_send_message,
+            Some(state.clone()),
+        )?
+        .with_func::<(i32, i32, i32, i32), i32, Arc<Mutex<HostState>>>(
+            "host_predict_call",
+            host_predict_call,
+            Some(state.clone()),
+        )?
+        .with_func::<(i32, i32, i32, i32), i32, Arc<Mutex<HostState>>>(
+            "host_categorise_call",
+            host_categorise_call,
             Some(state),
         )?
         .build::<Arc<Mutex<HostState>>>("env")?;
