@@ -1,7 +1,9 @@
 import { sql } from "../proxies/sqlite";
 
-const Value = () => ({
+const Value = () => process.env["BUILD_TARGET"] === "SQLite" && ({
 	now: sqlValue.now,
+}) || ({
+	now: () => "now()",
 });
 
 const value = Value();
