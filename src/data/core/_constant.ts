@@ -14,7 +14,7 @@ const constant = () => ({
 	now: "now",
 });
 
-// @ts-ignore
+// @ts-expect-error
 const BUILD_TARGET = process.env.BUILD_TARGET;
 
 const Constant = () =>

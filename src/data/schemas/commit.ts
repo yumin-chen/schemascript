@@ -2,37 +2,35 @@ import type { SchemaBuilder } from "../core";
 import { field, Schema, Table, value } from "../core";
 
 const commit: SchemaBuilder = () => ({
-
 	/**
-	 * The message. 
+	 * The message.
 	 *
 	 * @name message
-	 * @description The full path including filename of the commit. 
+	 * @description The full path including filename of the commit.
 	 * @type TEXT
 	 * @unique
 	 */
 	message: field.text("message").unique(),
 
 	/**
-	 * The mode type of the commit. 
+	 * The mode type of the commit.
 	 *
 	 * @name mode
-	 * @description The mode type of the commit. 
+	 * @description The mode type of the commit.
 	 * @type Enum
 	 */
 	mode: field.enum("mode", {
-		options:
-		{
+		options: {
 			blob: 100644,
 			executable: 100755,
 			symlink: 120000,
 			directory: 40000,
-			submodule: 160000
-		}
+			submodule: 160000,
+		},
 	}),
 
 	/**
-	 * The cryptographic hash digest of the commit content. 
+	 * The cryptographic hash digest of the commit content.
 	 *
 	 * @name digest
 	 * @description The cryptographic hash digest of the commit content.
@@ -43,7 +41,7 @@ const commit: SchemaBuilder = () => ({
 	digest: field.text("digest").unique().identifier(),
 
 	/**
-	 * The cryptographic hash digest identifier of the commit parents. 
+	 * The cryptographic hash digest identifier of the commit parents.
 	 *
 	 * @name digest
 	 * @description The cryptographic hash digest of the commit parents.
@@ -52,7 +50,7 @@ const commit: SchemaBuilder = () => ({
 	parents: field.text("parents").array(),
 
 	/**
-	 * The author actino of the commit. 
+	 * The author actino of the commit.
 	 *
 	 * @name author
 	 * @description The author action of the commit.
@@ -66,7 +64,7 @@ const commit: SchemaBuilder = () => ({
 	}),
 
 	/**
-	 * The committer action. 
+	 * The committer action.
 	 *
 	 * @name committer
 	 * @description The committer action.
@@ -80,18 +78,22 @@ const commit: SchemaBuilder = () => ({
 	}),
 
 	/**
-	 * The content of the commit. 
+	 * The content of the commit.
 	 *
 	 * @name artefacts
 	 * @description The content of the commit.
 	 * @type TEXT.Array
 	 * @array
 	 */
-	artefacts: field.text("artefacts", { mode: "timestamp" }).deriveFrom({
-		schemas: [artefact],
-		joinOn: (o, u) => `${o}.digest = ${u}.digest`,
-		sql: (o, u) => `${u}.author.date`,
-	}).array().default(value.emptyArray),
+	artefacts: field
+		.text("artefacts", { mode: "timestamp" })
+		.deriveFrom({
+			schemas: [artefact],
+			joinOn: (o, u) => `${o}.digest = ${u}.digest`,
+			sql: (o, u) => `${u}.author.date`,
+		})
+		.array()
+		.default(value.emptyArray),
 });
 
 const commitSchema = Schema("Commit", commit);
