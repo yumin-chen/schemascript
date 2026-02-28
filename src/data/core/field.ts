@@ -10,7 +10,7 @@ const timestampField = (name: string) => Primitive.timestamp.init(name);
 const jsonField = (name: string) => Primitive.json.init(name);
 const enumField = (
 	name: string,
-	config?: { options: Record<string, number> },
+	config: { options: Record<string, number> },
 ) => Primitive.enum.init(name).config(config);
 
 const Field = (): FieldBuilder => ({

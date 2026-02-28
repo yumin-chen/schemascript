@@ -6,7 +6,7 @@ const real = new Property<"real", number>("real");
 const text = new Property<"text", string>("text");
 const blob = new Property<"blob", Uint8Array>("blob");
 const timestamp = new Property<"timestamp", bigint | string | SQL>("timestamp");
-const json = new Property<"json", unknown>("json");
+const json = new Property<"json", object>("json");
 const enumeration = new Property<
 	"enum",
 	bigint,
