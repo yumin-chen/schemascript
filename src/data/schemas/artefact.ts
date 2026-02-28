@@ -13,6 +13,23 @@ const artefact: SchemaBuilder = () => ({
 	 */
 	pathname: field.text("pathname").unique(),
 
+	/**
+	 * The mode type of the artefact. 
+	 *
+	 * @name mode
+	 * @description The mode type of the artefact. 
+	 * @type Enum
+	 */
+	mode: field.enum("mode", {
+		options:
+		{
+			blob: 100644,
+			executable: 100755,
+			symlink: 120000,
+			directory: 40000,
+			submodule: 160000
+		}
+	}),
 
 	/**
 	 * The cryptographic hash digest of the artefact content. 
@@ -31,7 +48,7 @@ const artefact: SchemaBuilder = () => ({
 	 * @type INTEGER.Timestamp
 	 * @derived
 	 */
-	modifiedAt: field.integer("modified_at", { mode: "timestamp" }).default(value.now),
+	modifiedAt: field.integer("modified_at", { mode: "timestamp" }).deriveFrom().default(value.now),
 
 	/**
 	 * The creation timestamp of the artefact. 
