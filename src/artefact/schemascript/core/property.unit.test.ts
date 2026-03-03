@@ -1,0 +1,61 @@
+import { describe, expect, test } from "bun:test";
+import { Property } from "./property";
+
+describe("Property", () => {
+	test("should initialize with default options", () => {
+		const prop = new Property("text");
+		expect(prop.type).toBe("text");
+		expect(prop.name).toBeUndefined();
+	});
+
+	test("finalise() should return a new property with the given name and freeze it", () => {
+		const prop = new Property("text");
+		const finalised = prop.finalise("myColumn");
+		expect(finalised.name).toBe("myColumn");
+		expect(Object.isFrozen(finalised)).toBe(true);
+	});
+
+	test("toString() for standard types", () => {
+		expect(new Property("integer").finalise("id").toString()).toBe(
+			'integer("id")',
+		);
+		expect(new Property("real").finalise("score").toString()).toBe(
+			'real("score")',
+		);
+		expect(new Property("text").finalise("username").toString()).toBe(
+			'text("username")',
+		);
+		expect(new Property("blob").finalise("data").toString()).toBe(
+			'blob("data")',
+		);
+	});
+
+	test("toTypeScriptType() mapping", () => {
+		expect(new Property("integer").toTypeScriptType()).toBe("bigint");
+		expect(new Property("real").toTypeScriptType()).toBe("number");
+		expect(new Property("text").toTypeScriptType()).toBe("string");
+		expect(new Property("blob").toTypeScriptType()).toBe("Uint8Array");
+
+		const unknownProp = new Property("unknown" as any);
+		expect(unknownProp.toTypeScriptType()).toBe("unknown");
+	});
+
+	test("toJSON() should return all options", () => {
+		const prop = new Property("text").finalise("test");
+		const json = prop.toJSON();
+		expect(json.type).toBe("text");
+		expect(json.name).toBe("test");
+	});
+
+	test("getOptions() should return a copy of options", () => {
+		const prop = new Property("integer").finalise("id");
+		const options = prop.getOptions();
+		expect(options.name).toBe("id");
+	});
+
+	test("init() should return the property (type cast)", () => {
+		const prop = new Property("integer");
+		const initialized = prop.init<bigint>();
+		expect(initialized).toBe(prop);
+	});
+});
