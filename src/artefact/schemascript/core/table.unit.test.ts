@@ -1,0 +1,64 @@
+import { describe, expect, test } from "bun:test";
+import { getTableColumns } from "drizzle-orm";
+import { Table } from "./table";
+
+describe("Table", () => {
+	test("should create a Drizzle table with correct columns", () => {
+		const UserTable = Table("users", (prop) => ({
+			id: prop.integer(),
+			name: prop.text(),
+			status: prop.enum({ options: ["active", "inactive"] }),
+		}));
+
+		expect(UserTable).toBeDefined();
+		const columns = getTableColumns(UserTable);
+		expect(columns.id).toBeDefined();
+		expect(columns.name).toBeDefined();
+		expect(columns.status).toBeDefined();
+
+		expect(columns.id.notNull).toBe(true);
+		expect(columns.name.notNull).toBe(true);
+	});
+
+	test("should handle boolean type", () => {
+		const TableWithBool = Table("test", (prop) => ({
+			isActive: prop.boolean(),
+		}));
+		const columns = getTableColumns(TableWithBool);
+		// @ts-expect-error
+		expect(columns.isActive.dataType).toBe("boolean");
+	});
+
+	test("should handle timestamp type", () => {
+		const TableWithTime = Table("test", (prop) => ({
+			createdAt: prop.timestamp(),
+		}));
+		const columns = getTableColumns(TableWithTime);
+		// @ts-expect-error
+		expect(columns.createdAt.dataType).toBe("date");
+	});
+
+	test("should handle node type", () => {
+		const TableWithNode = Table("test", (prop) => ({
+			data: prop.node(),
+		}));
+		const columns = getTableColumns(TableWithNode);
+		// @ts-expect-error
+		expect(columns.data.dataType).toBe("json");
+	});
+
+	test("should throw error for unsupported type", () => {
+		expect(() => {
+			Table("test", (_prop: any) => ({
+				invalid: {
+					type: "invalid",
+					finalise: (name: string) => ({
+						type: "invalid",
+						name,
+						isOptional: false,
+					}),
+				},
+			}));
+		}).toThrow("Unsupported type: invalid");
+	});
+});
