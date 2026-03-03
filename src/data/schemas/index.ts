@@ -1,0 +1,1 @@
+export { artefactTable } from "./artefact";
