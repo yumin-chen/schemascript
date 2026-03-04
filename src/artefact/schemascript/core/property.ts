@@ -1,3 +1,4 @@
+import { deepFreeze } from "@/utils/freeze";
 import type { primitive } from "./primitive";
 
 class Property<
@@ -34,7 +35,12 @@ class Property<
 	finalise<T extends JavaScriptType = JavaScriptType>(
 		name: string,
 	): Property<TypeName, T, EnumOptionType> {
-		return this.setOptions({ name }) as Property<TypeName, T, EnumOptionType>;
+		const finalised = this.setOptions({ name }) as Property<
+			TypeName,
+			T,
+			EnumOptionType
+		>;
+		return deepFreeze(finalised);
 	}
 
 	enumOptions(
