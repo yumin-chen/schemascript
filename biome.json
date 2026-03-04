@@ -22,7 +22,14 @@
 			"style": {
 				"useConst": "error",
 				"useSingleVarDeclarator": "error",
-				"useExportsLast": "error"
+				"useExportsLast": "error",
+				"useFilenamingConvention": {
+					"level": "error",
+					"options": {
+						"strictCase": true,
+						"filenameCases": ["kebab-case"]
+					}
+				}
 			},
 			"correctness": {
 				"noUnusedVariables": "warn"
