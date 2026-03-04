@@ -12,6 +12,7 @@ describe("Modifiers E2E (SQL Generation)", () => {
 import { field, Table } from "../src/artefact/schemascript";
 
 export const testTable = Table("test_modifiers", (prop) => ({
+	id: prop.integer().identifier({ autoIncrement: true }),
 	required_unique: prop.text().unique(),
 	optional_field: prop.text().optional(),
 }));
@@ -37,6 +38,12 @@ export const testTable = Table("test_modifiers", (prop) => ({
 	test("drizzle-kit generate should produce UNIQUE index", () => {
 		expect(generatedSql).toContain(
 			"CREATE UNIQUE INDEX `test_modifiers_required_unique_unique` ON `test_modifiers` (`required_unique`)",
+		);
+	});
+
+	test("drizzle-kit generate should produce PRIMARY KEY", () => {
+		expect(generatedSql).toContain(
+			"`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL",
 		);
 	});
 });

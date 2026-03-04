@@ -90,6 +90,12 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 				throw new Error(`Unsupported type: ${prop.type}`);
 		}
 
+		if (prop.isIdentifier) {
+			builder = builder.primaryKey({
+				autoIncrement: prop.isAutoIncrement,
+			}) as typeof builder;
+		}
+
 		if (!prop.isOptional) {
 			builder = builder.notNull() as typeof builder;
 		}

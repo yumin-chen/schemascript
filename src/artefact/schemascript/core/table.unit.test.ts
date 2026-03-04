@@ -74,6 +74,14 @@ describe("Table", () => {
 		expect(columns.both.notNull).toBe(false);
 	});
 
+	test("should handle identifier fields", () => {
+		const MyTable = Table("my_table", () => ({
+			id: field.integer().identifier({ autoIncrement: true }),
+		}));
+
+		expect(MyTable).toBeDefined();
+	});
+
 	test("should handle enums with mapping", () => {
 		const MyTable = Table("my_table", (prop) => ({
 			status: prop.enum({ options: ["A", "B"] }),

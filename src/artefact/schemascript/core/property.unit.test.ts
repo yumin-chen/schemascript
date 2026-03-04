@@ -36,6 +36,27 @@ describe("Property", () => {
 		expect(prop.isUnique).toBe(false); // Immutability
 	});
 
+	test("identifier should mark property as primary key", () => {
+		const prop = new Property("text");
+		const idProp = prop.identifier();
+		expect(idProp.isIdentifier).toBe(true);
+		expect(prop.isIdentifier).toBe(false);
+	});
+
+	test("identifier with autoIncrement for integers", () => {
+		const prop = new Property("integer");
+		const idProp = prop.identifier({ autoIncrement: true });
+		expect(idProp.isIdentifier).toBe(true);
+		expect(idProp.isAutoIncrement).toBe(true);
+	});
+
+	test("identifier should throw for enums", () => {
+		const prop = new Property("enum");
+		expect(() => (prop as any).identifier()).toThrow(
+			"Enums cannot be identifiers.",
+		);
+	});
+
 	test("toString for primitive types", () => {
 		const prop = new Property("text").finalise("id");
 		expect(prop.toString()).toBe('text("id")');
@@ -45,6 +66,13 @@ describe("Property", () => {
 
 		const uniqueProp = new Property("text").unique().finalise("email");
 		expect(uniqueProp.toString()).toBe('text("email").unique()');
+
+		const idProp = new Property("integer")
+			.identifier({ autoIncrement: true })
+			.finalise("id");
+		expect(idProp.toString()).toBe(
+			'integer("id").identifier({ autoIncrement: true })',
+		);
 
 		const bothProp = new Property("text").optional().unique().finalise("desc");
 		expect(bothProp.toString()).toBe('text("desc").optional().unique()');
