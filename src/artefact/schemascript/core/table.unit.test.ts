@@ -61,8 +61,8 @@ describe("Table", () => {
 	});
 
 	test("should handle both unique and optional fields", () => {
-		const MyTable = Table("my_table", () => ({
-			both: field.text().optional().unique(),
+		const MyTable = Table("my_table", (prop) => ({
+			both: prop.text().optional().unique(),
 		}));
 
 		const columns = (
@@ -75,20 +75,33 @@ describe("Table", () => {
 	});
 
 	test("should handle identifier fields", () => {
-		const MyTable = Table("my_table", () => ({
-			id: field.integer().identifier({ autoIncrement: true }),
+		const MyTable = Table("my_table", (prop) => ({
+			id: prop.integer().identifier({ autoIncrement: true }),
 		}));
 
 		expect(MyTable).toBeDefined();
 	});
 
 	test("should handle reference fields", () => {
-		const OtherTable = Table("other", () => ({ id: field.integer() }));
-		const MyTable = Table("my_table", () => ({
-			other_id: field.integer().references(() => (OtherTable as any).id),
+		const OtherTable = Table("other", (prop) => ({ id: prop.integer() }));
+		const MyTable = Table("my_table", (prop) => ({
+			other_id: prop.integer().references(() => (OtherTable as any).id),
 		}));
 
 		expect(MyTable).toBeDefined();
+	});
+
+	test("should handle default values", () => {
+		const MyTable = Table("my_table", (prop) => ({
+			def: prop.integer().default(42n),
+		}));
+
+		const columns = (
+			MyTable as unknown as {
+				[key: symbol]: Record<string, { default: unknown }>;
+			}
+		)[Symbol.for("drizzle:Columns")];
+		expect(columns.def.default).toBe(42n);
 	});
 
 	test("should handle enums with mapping", () => {

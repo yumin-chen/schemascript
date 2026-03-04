@@ -104,6 +104,10 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 			builder = builder.unique() as typeof builder;
 		}
 
+		if (prop.hasDefault) {
+			builder = builder.default(prop.defaultValue as never) as typeof builder;
+		}
+
 		if (prop.reference) {
 			builder = builder.references(
 				prop.reference.ref,

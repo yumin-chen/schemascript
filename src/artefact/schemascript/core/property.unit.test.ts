@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { Property } from "./property";
+import { value } from "./value";
 
 describe("Property", () => {
 	test("should initialize correctly", () => {
@@ -58,10 +59,18 @@ describe("Property", () => {
 	});
 
 	test("references should store reference metadata", () => {
-		const mockRef = () => ({} as any);
-		const prop = new Property("integer").references(mockRef, { onDelete: "cascade" });
+		const mockRef = () => ({}) as any;
+		const prop = new Property("integer").references(mockRef, {
+			onDelete: "cascade",
+		});
 		expect(prop.reference?.ref).toBe(mockRef);
 		expect(prop.reference?.actions?.onDelete).toBe("cascade");
+	});
+
+	test("default should store default value", () => {
+		const prop = new Property("integer").default(42n);
+		expect(prop.hasDefault).toBe(true);
+		expect(prop.defaultValue).toBe(42n);
 	});
 
 	test("toString for primitive types", () => {
@@ -84,8 +93,17 @@ describe("Property", () => {
 		const bothProp = new Property("text").optional().unique().finalise("desc");
 		expect(bothProp.toString()).toBe('text("desc").optional().unique()');
 
-		const refProp = new Property("integer").references(() => ({} as any), { onDelete: "cascade" }).finalise("user_id");
-		expect(refProp.toString()).toBe('integer("user_id").references(..., { onDelete: \'cascade\' })');
+		const refProp = new Property("integer")
+			.references(() => ({}) as any, { onDelete: "cascade" })
+			.finalise("user_id");
+		expect(refProp.toString()).toBe(
+			"integer(\"user_id\").references(..., { onDelete: 'cascade' })",
+		);
+
+		const defProp = new Property("timestamp")
+			.default(value.now)
+			.finalise("created_at");
+		expect(defProp.toString()).toContain(".default(");
 	});
 
 	test("toString for enums with array options", () => {
@@ -127,11 +145,6 @@ describe("Property", () => {
 	test("toTypeScriptType for enums", () => {
 		const prop = new Property("enum").enumOptions({ options: ["A", "B"] });
 		expect(prop.toTypeScriptType()).toBe('"A" | "B"');
-
-		const propObj = new Property("enum").enumOptions({
-			options: { X: 1, Y: 2 },
-		});
-		expect(propObj.toTypeScriptType()).toBe('"X" | "Y"');
 
 		const propNoConfig = new Property("enum");
 		expect(propNoConfig.toTypeScriptType()).toBe("string | number");

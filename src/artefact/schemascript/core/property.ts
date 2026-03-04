@@ -1,6 +1,6 @@
+import type { AnySQLiteColumn, SQL } from "@/data/proxies/sqlite";
 import { deepFreeze } from "@/utils/freeze";
 import type { primitive } from "./primitive";
-import type { AnySQLiteColumn } from "@/data/proxies/sqlite";
 
 class Property<
 	TypeName extends string,
@@ -13,7 +13,6 @@ class Property<
 			JavaScriptType,
 			EnumOptionType
 		> = {
-			isUnique: false,
 			isOptional: false,
 		},
 	) {}
@@ -53,20 +52,27 @@ class Property<
 		return this.setOptions({ enumOptions });
 	}
 
+	optional(): Property<TypeName, JavaScriptType | null, EnumOptionType> {
+		if (this.isOptional) return this as any;
+		return this.setOptions({ isOptional: true });
+	}
+
 	unique(): Property<TypeName, JavaScriptType, EnumOptionType> {
 		if (this.isUnique) return this;
 		return this.setOptions({ isUnique: true });
 	}
 
-	optional(): Property<TypeName, JavaScriptType | null, EnumOptionType> {
-		if (this.isOptional) return this;
-		return this.setOptions({ isOptional: true });
+	default(
+		value: JavaScriptType | SQL,
+	): Property<TypeName, JavaScriptType, EnumOptionType> {
+		return this.setOptions({ defaultValue: value });
 	}
 
 	identifier(
 		this: Property<Exclude<TypeName, "enum">, JavaScriptType, EnumOptionType>,
 		config?: TypeName extends "integer" ? { autoIncrement: boolean } : never,
 	): Property<TypeName, JavaScriptType, EnumOptionType> {
+		if (this.isIdentifier) return this as any;
 		if (this._type === "enum") {
 			throw new Error("Enums cannot be identifiers.");
 		}
@@ -103,12 +109,12 @@ class Property<
 		return this.options.enumOptions;
 	}
 
-	get isUnique(): boolean {
-		return !!this.options.isUnique;
+	get isOptional(): boolean {
+		return this.options.isOptional;
 	}
 
-	get isOptional(): boolean {
-		return !!this.options.isOptional;
+	get isUnique(): boolean {
+		return !!this.options.isUnique;
 	}
 
 	get isIdentifier(): boolean {
@@ -123,10 +129,18 @@ class Property<
 		return this.options.references;
 	}
 
+	get hasDefault(): boolean {
+		return this.options.defaultValue !== undefined;
+	}
+
+	get defaultValue(): JavaScriptType | SQL | undefined {
+		return this.options.defaultValue;
+	}
+
 	toString(): string {
 		const name = this.name ?? "unnamed";
-		const unique = this.isUnique ? ".unique()" : "";
 		const optional = this.isOptional ? ".optional()" : "";
+		const unique = this.isUnique ? ".unique()" : "";
 		const identifier = this.isIdentifier
 			? this.isAutoIncrement
 				? ".identifier({ autoIncrement: true })"
@@ -145,6 +159,10 @@ class Property<
 			references = `.references(...${actionStr})`;
 		}
 
+		const defaultVal = this.hasDefault
+			? `.default(${typeof this.defaultValue === "bigint" ? this.defaultValue.toString() : JSON.stringify(this.defaultValue)})`
+			: "";
+
 		if (this._type === "enum") {
 			const config = this.enumConfigs as
 				| { options?: string[] | Record<string, number> }
@@ -153,18 +171,18 @@ class Property<
 			if (options) {
 				if (Array.isArray(options)) {
 					const values = options.map((v) => `"${v}"`).join(", ");
-					return `enum("${name}",\n    {   options:\n\t\t\t[${values}]\n\t}\n   )${optional}${unique}${identifier}${references}`;
+					return `enum("${name}",\n    {   options:\n\t\t\t[${values}]\n\t}\n   )${optional}${unique}${identifier}${references}${defaultVal}`;
 				}
 				if (typeof options === "object") {
 					const values = Object.entries(options)
 						.map(([k, v]) => `\t\t\t\t${k}: ${v},`)
 						.join("\n");
-					return `enum("${name}",\n    {   options:\n\t\t\t{\n${values}\n\t\t\t}\n\t\t}\n   )${optional}${unique}${identifier}${references}`;
+					return `enum("${name}",\n    {   options:\n\t\t\t{\n${values}\n\t\t\t}\n\t\t}\n   )${optional}${unique}${identifier}${references}${defaultVal}`;
 				}
 			}
 		}
 
-		return `${this._type}("${name}")${optional}${unique}${identifier}${references}`;
+		return `${this._type}("${name}")${optional}${unique}${identifier}${references}${defaultVal}`;
 	}
 
 	toTypeScriptType(): string {
@@ -224,6 +242,7 @@ class Property<
 		return {
 			type: this._type,
 			...this.options,
+			hasDefault: this.hasDefault,
 		};
 	}
 }
@@ -231,10 +250,11 @@ class Property<
 type PropertyOptions<_JavaScriptType = unknown, EnumOptionType = unknown> = {
 	name?: string;
 	enumOptions?: EnumOptionType;
+	isOptional: boolean;
 	isUnique?: boolean;
-	isOptional?: boolean;
 	isIdentifier?: boolean;
 	autoIncrement?: boolean;
+	defaultValue?: JavaScriptType | SQL;
 	references?: {
 		ref: () => AnySQLiteColumn;
 		actions?: ReferenceActions;

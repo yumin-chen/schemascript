@@ -21,8 +21,8 @@ describe("Artefact Schema", () => {
 					}
 			   ),
 			   text("digest").unique(),
-			   timestamp("modified_at"),
-			   timestamp("created_at")
+			   timestamp("modified_at").default("now"),
+			   timestamp("created_at").default("now")
 			}`;
 		expect(schemaString).toBe(schemaExpected);
 	});

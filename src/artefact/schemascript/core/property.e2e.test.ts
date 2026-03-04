@@ -13,6 +13,7 @@ import { field, Table } from "../src/artefact/schemascript";
 
 export const parent = Table("parent", (prop) => ({
 	id: prop.integer().identifier({ autoIncrement: true }),
+	id: f.integer().identifier({ autoIncrement: true }),
 }));
 
 export const testTable = Table("test_modifiers", (prop) => ({
@@ -31,28 +32,20 @@ export const testTable = Table("test_modifiers", (prop) => ({
 		}
 	});
 
-	test("drizzle-kit generate should produce NULL for optional fields", () => {
+	test("drizzle-kit generate should produce valid SQL", () => {
 		expect(generatedSql).toContain("`optional_field` text");
 		expect(generatedSql).not.toContain("`optional_field` text NOT NULL");
-	});
-
-	test("drizzle-kit generate should produce NOT NULL for required fields", () => {
 		expect(generatedSql).toContain("`required_unique` text NOT NULL");
-	});
-
-	test("drizzle-kit generate should produce UNIQUE index", () => {
 		expect(generatedSql).toContain(
 			"CREATE UNIQUE INDEX `test_modifiers_required_unique_unique` ON `test_modifiers` (`required_unique`)",
 		);
-	});
-
-	test("drizzle-kit generate should produce PRIMARY KEY", () => {
 		expect(generatedSql).toContain(
 			"`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL",
 		);
-	});
-
-	test("drizzle-kit generate should produce FOREIGN KEY", () => {
-		expect(generatedSql).toContain('FOREIGN KEY (`parent_id`) REFERENCES `parent`(`id`) ON UPDATE no action ON DELETE cascade');
+		expect(generatedSql).toContain(
+			"FOREIGN KEY (`parent_id`) REFERENCES `parent`(`id`) ON UPDATE no action ON DELETE cascade",
+		);
+		expect(generatedSql).toContain("`status` integer DEFAULT 1 NOT NULL");
+		expect(generatedSql).toContain("`tags` blob NOT NULL");
 	});
 });
