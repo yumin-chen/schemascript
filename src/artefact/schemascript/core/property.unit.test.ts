@@ -36,9 +36,67 @@ describe("Property", () => {
 		expect(Object.isFrozen(finalised)).toBe(true);
 	});
 
-	test("toString() for standard types", () => {
-		const prop = new Property("text").finalise("username");
-		expect(prop.toString()).toBe('text("username")');
+	test("array should mark property as array", () => {
+		const prop = new Property("text");
+		const arrayProp = prop.array();
+		expect(arrayProp.isArray).toBe(true);
+		expect(prop.isArray).toBe(false); // Immutability
+	});
+
+	test("array should throw if property is identifier", () => {
+		const prop = new Property("integer").identifier();
+		expect(() => prop.array()).toThrow("Identifiers cannot be arrays.");
+	});
+
+	test("identifier should mark property as primary key", () => {
+		const prop = new Property("text");
+		const idProp = prop.identifier();
+		expect(idProp.isIdentifier).toBe(true);
+		expect(prop.isIdentifier).toBe(false);
+	});
+
+	test("identifier with autoIncrement for integers", () => {
+		const prop = new Property("integer");
+		const idProp = prop.identifier({ autoIncrement: true });
+		expect(idProp.isIdentifier).toBe(true);
+		expect(idProp.isAutoIncrement).toBe(true);
+	});
+
+	test("identifier should throw for enums", () => {
+		const prop = new Property("enum");
+		expect(() => (prop as any).identifier()).toThrow(
+			"Enums cannot be identifiers.",
+		);
+	});
+
+	test("identifier should throw for arrays", () => {
+		const prop = new Property("text").array();
+		expect(() => (prop as any).identifier()).toThrow(
+			"Arrays cannot be identifiers.",
+		);
+	});
+
+	test("references should store reference metadata", () => {
+		const mockRef = () => ({}) as any;
+		const prop = new Property("integer").references(mockRef, {
+			onDelete: "cascade",
+		});
+		expect(prop.reference?.ref).toBe(mockRef);
+		expect(prop.reference?.actions?.onDelete).toBe("cascade");
+	});
+
+	test("default should store default value", () => {
+		const prop = new Property("integer").default(42n);
+		expect(prop.hasDefault).toBe(true);
+		expect(prop.defaultValue).toBe(42n);
+	});
+
+	test("toString for primitive types", () => {
+		const prop = new Property("text").finalise("id");
+		expect(prop.toString()).toBe('text("id")');
+
+		const optionalProp = new Property("integer").optional().finalise("age");
+		expect(optionalProp.toString()).toBe('integer("age").optional()');
 
 		const uniqueProp = new Property("text").unique().finalise("email");
 		expect(uniqueProp.toString()).toBe('text("email").unique()');
@@ -55,6 +113,12 @@ describe("Property", () => {
 		expect(aiProp.toString()).toBe(
 			'integer("id").identifier({ autoIncrement: true })',
 		);
+
+		const arrayProp = new Property("text").array().finalise("tags");
+		expect(arrayProp.toString()).toBe('text("tags").array()');
+
+		const bothProp = new Property("text").optional().unique().finalise("desc");
+		expect(bothProp.toString()).toBe('text("desc").optional().unique()');
 
 		const refProp = new Property("integer")
 			.references(() => ({}) as unknown as AnySQLiteColumn, {
@@ -153,9 +217,22 @@ describe("Property", () => {
 		expect(unknownProp.toTypeScriptType()).toBe("unknown");
 	});
 
-	test("toTypeScriptType() handles optional", () => {
-		const prop = new Property("text").optional();
-		expect(prop.toTypeScriptType()).toBe("string | null");
+	test("toTypeScriptType for array types", () => {
+		expect(new Property("text").array().toTypeScriptType()).toBe("string[]");
+		expect(new Property("integer").array().toTypeScriptType()).toBe("bigint[]");
+	});
+
+	test("toTypeScriptType for enums", () => {
+		const prop = new Property("enum").enumOptions({ options: ["A", "B"] });
+		expect(prop.toTypeScriptType()).toBe('"A" | "B"');
+
+		const arrayEnum = new Property("enum")
+			.enumOptions({ options: ["A", "B"] })
+			.array();
+		expect(arrayEnum.toTypeScriptType()).toBe('("A" | "B")[]');
+
+		const propNoConfig = new Property("enum");
+		expect(propNoConfig.toTypeScriptType()).toBe("string | number");
 	});
 
 	test("toJSON() should return all options", () => {

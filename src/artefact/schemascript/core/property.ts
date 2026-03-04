@@ -69,9 +69,16 @@ class Property<
 		return this.setOptions({ isUnique: true });
 	}
 
-	optional(): Property<TypeName, JavaScriptType | null, EnumOptionType> {
-		if (this.isOptional) return this;
-		return this.setOptions({ isOptional: true });
+	array(): Property<TypeName, JavaScriptType[], EnumOptionType> {
+		if (this.isArray) return this;
+		if (this.isIdentifier) {
+			throw new Error("Identifiers cannot be arrays.");
+		}
+		return this.setOptions({ isArray: true }) as Property<
+			TypeName,
+			JavaScriptType[],
+			EnumOptionType
+		>;
 	}
 
 	default(
@@ -150,6 +157,10 @@ class Property<
 		return !!this.options.isUnique;
 	}
 
+	get isArray(): boolean {
+		return !!this.options.isArray;
+	}
+
 	get isIdentifier(): boolean {
 		return !!this.options.isIdentifier;
 	}
@@ -183,13 +194,23 @@ class Property<
 	toString(): string {
 		const name = this.name ?? "unnamed";
 		const unique = this.isUnique ? ".unique()" : "";
-		const optional = this.isOptional ? ".optional()" : "";
-		let identifier = "";
-		if (this.isIdentifier) {
-			identifier = ".identifier()";
-			if (this.identifierConfigs?.autoIncrement) {
-				identifier = ".identifier({ autoIncrement: true })";
-			}
+		const array = this.isArray ? ".array()" : "";
+		const identifier = this.isIdentifier
+			? this.isAutoIncrement
+				? ".identifier({ autoIncrement: true })"
+				: ".identifier()"
+			: "";
+		let references = "";
+		if (this.reference) {
+			const actions = this.reference.actions;
+			const actionParts: string[] = [];
+			if (actions?.onUpdate)
+				actionParts.push(`onUpdate: "${actions.onUpdate}"`);
+			if (actions?.onDelete)
+				actionParts.push(`onDelete: "${actions.onDelete}"`);
+			const actionStr =
+				actionParts.length > 0 ? `, { ${actionParts.join(", ")} }` : "";
+			references = `.references(...${actionStr})`;
 		}
 
 		let references = "";
@@ -226,18 +247,18 @@ class Property<
 			if (options) {
 				if (Array.isArray(options)) {
 					const values = options.map((v) => `"${v}"`).join(", ");
-					return `enum("${name}",\n    {   options:\n\t\t\t[${values}]\n\t}\n   )${optional}${unique}${identifier}${defaultValue}`;
+					return `enum("${name}",\n    {   options:\n\t\t\t[${values}]\n\t}\n   )${optional}${unique}${array}${identifier}${references}${defaultVal}`;
 				}
 				if (typeof options === "object") {
 					const values = Object.entries(options)
 						.map(([k, v]) => `\t\t\t\t${k}: ${v},`)
 						.join("\n");
-					return `enum("${name}",\n    {   options:\n\t\t\t{\n${values}\n\t\t\t}\n\t\t}\n   )${optional}${unique}${identifier}${defaultValue}`;
+					return `enum("${name}",\n    {   options:\n\t\t\t{\n${values}\n\t\t\t}\n\t\t}\n   )${optional}${unique}${array}${identifier}${references}${defaultVal}`;
 				}
 			}
 		}
 
-		return `${this._type}("${name}")${optional}${unique}${identifier}${defaultValue}${references}`;
+		return `${this._type}("${name}")${optional}${unique}${array}${identifier}${references}${defaultVal}`;
 	}
 
 	toTypeScriptType(): string {
@@ -280,10 +301,17 @@ class Property<
 				} else {
 					typeStr = "string | number";
 				}
+				if (this.isArray) {
+					typeStr = `(${typeStr})`;
+				}
 				break;
 			}
 			default:
 				typeStr = "unknown";
+		}
+
+		if (this.isArray) {
+			typeStr = `${typeStr}[]`;
 		}
 
 		if (this.isOptional) {
@@ -305,7 +333,7 @@ type PropertyOptions<JavaScriptType = unknown, EnumOptionType = unknown> = {
 	name?: string;
 	enumOptions?: EnumOptionType;
 	isUnique?: boolean;
-	isOptional?: boolean;
+	isArray?: boolean;
 	isIdentifier?: boolean;
 	identifierOptions?: { autoIncrement?: boolean };
 	references?: ReferenceOptions;

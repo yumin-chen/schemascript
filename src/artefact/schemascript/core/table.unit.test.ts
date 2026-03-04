@@ -74,6 +74,19 @@ describe("Table", () => {
 		expect(columns.enum_uniq.isUnique).toBe(true);
 	});
 
+	test("should handle array fields as JSON blobs", () => {
+		const MyTable = Table("my_table", (prop) => ({
+			tags: prop.text().array(),
+		}));
+
+		const columns = (
+			MyTable as unknown as {
+				[key: symbol]: Record<string, { dataType: string; mode: string }>;
+			}
+		)[Symbol.for("drizzle:Columns")];
+		expect(columns.tags.dataType).toBe("json");
+	});
+
 	test("should handle enums with mapping", () => {
 		const MyTable = Table("my_table", (prop) => ({
 			id: prop.integer(),
