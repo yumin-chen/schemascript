@@ -1,5 +1,5 @@
-import type { FieldBuilder } from "./field";
-import { field } from "./field";
+import type { FieldBuilder } from "./_field";
+import { field } from "./_field";
 import type { Property } from "./property";
 
 function Schema<TName extends string>(

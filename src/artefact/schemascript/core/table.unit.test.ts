@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { field } from "./field";
+import { field } from "./_field";
 import { Table } from "./table";
 
 describe("Table", () => {

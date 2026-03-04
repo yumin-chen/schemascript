@@ -7,7 +7,7 @@ import {
 	sqliteTable,
 	text,
 } from "@/data/proxies/sqlite";
-import { field } from "./field";
+import { field } from "./_field";
 import type { SchemaBuilder } from "./schema";
 
 function Table(name: string, schemaBuilder: SchemaBuilder) {
