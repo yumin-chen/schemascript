@@ -7,6 +7,7 @@ describe("Property", () => {
 		expect(prop.type).toBe("text");
 		expect(prop.name).toBeUndefined();
 		expect(prop.isUnique).toBe(false);
+		expect(prop.isOptional).toBe(false);
 	});
 
 	test("unique() should return a new property with isUnique true", () => {
@@ -14,6 +15,13 @@ describe("Property", () => {
 		const uniqueProp = prop.unique();
 		expect(uniqueProp.isUnique).toBe(true);
 		expect(prop.isUnique).toBe(false);
+	});
+
+	test("optional() should return a new property with isOptional true", () => {
+		const prop = new Property("text");
+		const optionalProp = prop.optional();
+		expect(optionalProp.isOptional).toBe(true);
+		expect(prop.isOptional).toBe(false);
 	});
 
 	test("unique() should throw on enum", () => {
@@ -41,6 +49,9 @@ describe("Property", () => {
 
 		const uniqueProp = new Property("text").unique().finalise("email");
 		expect(uniqueProp.toString()).toBe('text("email").unique()');
+
+		const optionalProp = new Property("integer").optional().finalise("age");
+		expect(optionalProp.toString()).toBe('integer("age").optional()');
 	});
 
 	test("toString() for enum types with array options", () => {
@@ -78,11 +89,17 @@ describe("Property", () => {
 		expect(unknownProp.toTypeScriptType()).toBe("unknown");
 	});
 
+    test("toTypeScriptType() handles optional", () => {
+        const prop = new Property("text").optional();
+        expect(prop.toTypeScriptType()).toBe("string | null");
+    });
+
 	test("toJSON() should return all options", () => {
-		const prop = new Property("text").unique().finalise("test");
+		const prop = new Property("text").unique().optional().finalise("test");
 		const json = prop.toJSON();
 		expect(json.type).toBe("text");
 		expect(json.name).toBe("test");
 		expect(json.isUnique).toBe(true);
+		expect(json.isOptional).toBe(true);
 	});
 });

@@ -5,12 +5,13 @@ describe("Schema", () => {
 	test("should define a schema with fields", () => {
 		const User = Schema("User", (prop) => ({
 			id: prop.integer(),
-			name: prop.text(),
+			name: prop.text().optional(),
 		}));
 
 		expect(User._name).toBe("User");
 		expect(User.fields.id.name).toBe("id");
 		expect(User.fields.name.name).toBe("name");
+		expect(User.fields.name.isOptional).toBe(true);
 	});
 
 	test("toString() should return correct representation", () => {
@@ -25,12 +26,12 @@ describe("Schema", () => {
 	test("toTypeScriptInterface() should return correct interface string", () => {
 		const User = Schema("User", (prop) => ({
 			id: prop.integer(),
-			name: prop.text(),
+			name: prop.text().optional(),
 		}));
 		const ts = User.toTypeScriptInterface();
 		expect(ts).toContain("interface User {");
 		expect(ts).toContain("id: bigint;");
-		expect(ts).toContain("name: string;");
+		expect(ts).toContain("name: string | null;");
 	});
 
 	test("toJSON() should return serializable object", () => {

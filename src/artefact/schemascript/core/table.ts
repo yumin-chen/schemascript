@@ -90,7 +90,9 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 				throw new Error(`Unsupported type: ${prop.type}`);
 		}
 
-		builder = builder.notNull() as typeof builder;
+		if (!prop.isOptional) {
+			builder = builder.notNull() as typeof builder;
+		}
 
 		if (prop.isUnique) {
 			builder = builder.unique() as typeof builder;
