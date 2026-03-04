@@ -1,7 +1,7 @@
 import { $ } from "bun";
 
 const version = await $`git describe --tags --always`.text();
-const target = process.env.NODE_ENV === "production" && "SQLite" || "SQLite-Dev";
+const target = "SQLite";
 const buildTime = new Date().toISOString();
 const gitCommit = await $`git rev-parse HEAD`.text();
 
