@@ -8,7 +8,7 @@ describe("Artefact Schema", () => {
 		const schemaExpected = _$`
 			Schema: Artefact
 			{
-			   text("pathname"),
+			   text("pathname").unique(),
 			   enum("mode",
 			    {   options:
 						{
@@ -20,7 +20,7 @@ describe("Artefact Schema", () => {
 						}
 					}
 			   ),
-			   text("digest"),
+			   text("digest").unique(),
 			   timestamp("modified_at"),
 			   timestamp("created_at")
 			}`;

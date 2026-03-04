@@ -5,7 +5,8 @@ const artefact: SchemaBuilder = () => ({
 	/**
 	 * The full path including filename of the artefact.
 	 *
-	pathname: field.text(),
+	 */
+	pathname: field.text().unique(),
 
 	/**
 	 * The mode type of the artefact.
@@ -25,7 +26,7 @@ const artefact: SchemaBuilder = () => ({
 	 * The cryptographic hash digest of the artefact content.
 	 *
 	 */
-	digest: field.text(),
+	digest: field.text().unique(),
 
 	/**
 	 * The last modification timestamp of the artefact.

@@ -6,6 +6,19 @@ describe("Property", () => {
 		const prop = new Property("text");
 		expect(prop.type).toBe("text");
 		expect(prop.name).toBeUndefined();
+		expect(prop.isUnique).toBe(false);
+	});
+
+	test("unique() should return a new property with isUnique true", () => {
+		const prop = new Property("integer");
+		const uniqueProp = prop.unique();
+		expect(uniqueProp.isUnique).toBe(true);
+		expect(prop.isUnique).toBe(false);
+	});
+
+	test("unique() should throw on enum", () => {
+		const prop = new Property("enum");
+		expect(() => prop.unique()).toThrow("Enums cannot be unique.");
 	});
 
 	test("finalise() should return a new property with the given name and freeze it", () => {
@@ -25,6 +38,9 @@ describe("Property", () => {
 	test("toString() for standard types", () => {
 		const prop = new Property("text").finalise("username");
 		expect(prop.toString()).toBe('text("username")');
+
+		const uniqueProp = new Property("text").unique().finalise("email");
+		expect(uniqueProp.toString()).toBe('text("email").unique()');
 	});
 
 	test("toString() for enum types with array options", () => {
@@ -55,9 +71,7 @@ describe("Property", () => {
 		const enumProp = new Property("enum").enumOptions({ options: ["A", "B"] });
 		expect(enumProp.toTypeScriptType()).toBe('"A" | "B"');
 
-		const enumObjProp = new Property("enum").enumOptions({
-			options: { X: 1, Y: 2 },
-		});
+		const enumObjProp = new Property("enum").enumOptions({ options: { X: 1, Y: 2 } });
 		expect(enumObjProp.toTypeScriptType()).toBe('"X" | "Y"');
 
 		const unknownProp = new Property("unknown" as any);
@@ -65,9 +79,10 @@ describe("Property", () => {
 	});
 
 	test("toJSON() should return all options", () => {
-		const prop = new Property("text").finalise("test");
+		const prop = new Property("text").unique().finalise("test");
 		const json = prop.toJSON();
 		expect(json.type).toBe("text");
 		expect(json.name).toBe("test");
+		expect(json.isUnique).toBe(true);
 	});
 });
