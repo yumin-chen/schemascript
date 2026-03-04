@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { field } from "./field";
 import { Table } from "./table";
 
 describe("Table", () => {
@@ -72,6 +73,19 @@ describe("Table", () => {
 		expect(columns.date_uniq.isUnique).toBe(true);
 		expect(columns.node_uniq.isUnique).toBe(true);
 		expect(columns.enum_uniq.isUnique).toBe(true);
+	});
+
+	test("should handle array fields as JSON blobs", () => {
+		const MyTable = Table("my_table", () => ({
+			tags: field.text().array(),
+		}));
+
+		const columns = (
+			MyTable as unknown as {
+				[key: symbol]: Record<string, { dataType: string; mode: string }>;
+			}
+		)[Symbol.for("drizzle:Columns")];
+		expect(columns.tags.dataType).toBe("json");
 	});
 
 	test("should handle enums with mapping", () => {

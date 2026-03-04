@@ -415,6 +415,9 @@ import { Table } from "${libraryPath}";
 
 export const testTable = Table("test_table_array", (prop) => ({
 	tags: prop.text().array(),
+	ids: prop.integer().array(),
+	flags: prop.boolean().array(),
+	nodes: prop.node().array(),
 }));
 `;
 		const fallbackSchema = `
@@ -422,6 +425,9 @@ import { sqliteTable, blob } from "drizzle-orm/sqlite-core";
 
 export const testTable = sqliteTable("test_table_array", {
 	tags: blob("tags", { mode: "json" }).notNull(),
+	ids: blob("ids", { mode: "json" }).notNull(),
+	flags: blob("flags", { mode: "json" }).notNull(),
+	nodes: blob("nodes", { mode: "json" }).notNull(),
 });
 `;
 
@@ -441,7 +447,15 @@ export const testTable = sqliteTable("test_table_array", {
 	test("generated SQL should correctly reflect array columns as BLOB", () => {
 		if (!sqlContent) return;
 
-		expect(sqlContent.toLowerCase()).toContain("blob");
-		expect(sqlContent).toContain("tags");
+		const columns = ["tags", "ids", "flags", "nodes"];
+		for (const col of columns) {
+			expect(sqlContent).toContain(col);
+			const lines = sqlContent.split("\n");
+			const colLine = lines.find(
+				(line) => line.includes(`"${col}"`) || line.includes(`\`${col}\``),
+			);
+			expect(colLine?.toLowerCase()).toContain("blob");
+			expect(colLine?.toUpperCase()).toContain("NOT NULL");
+		}
 	});
 });

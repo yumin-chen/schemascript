@@ -8,7 +8,10 @@ function Schema<TName extends string>(
 ) {
 	const rawFields = schemaBuilder(field);
 	const fields = Object.fromEntries(
-		Object.entries(rawFields).map(([key, prop]) => [key, prop.finalise(key)]),
+		Object.entries(rawFields).map(([key, prop]) => [
+			key,
+			(typeof prop === "function" ? prop() : prop).finalise(key),
+		]),
 	);
 
 	const schema = {
@@ -50,6 +53,9 @@ function Schema<TName extends string>(
 
 type SchemaBuilder = (
 	prop: FieldBuilder,
-) => Record<string, Property<string, unknown, unknown>>;
+) => Record<
+	string,
+	Property<string, unknown, unknown> | PropertyBuilder<string, unknown, unknown>
+>;
 
 export { Schema, type SchemaBuilder };

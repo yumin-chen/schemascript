@@ -1,7 +1,4 @@
-import type {
-	AnySQLiteColumnBuilder,
-	primitive as DrizzlePrimitive,
-} from "@/data/proxies/sqlite";
+import type { primitive } from "@/data/proxies/sqlite";
 import {
 	blob,
 	customType,
@@ -16,16 +13,47 @@ import type { SchemaBuilder } from "./schema";
 function Table(name: string, schemaBuilder: SchemaBuilder) {
 	const rawFields = schemaBuilder(field);
 	const fields = Object.fromEntries(
-		Object.entries(rawFields).map(([key, prop]) => [key, prop.finalise(key)]),
+		Object.entries(rawFields).map(([key, prop]) => [
+			key,
+			(typeof prop === "function" ? prop() : prop).finalise(key),
+		]),
 	);
-	const sqliteColumns: Record<string, DrizzlePrimitive> = {};
+	const sqliteColumns: Record<string, primitive> = {};
 
 	for (const [key, prop] of Object.entries(fields)) {
 		const columnName = prop.name ?? key;
-		let builder: AnySQLiteColumnBuilder;
+		let builder: primitive;
 
 		if (prop.isArray) {
-			builder = blob(columnName, { mode: "json" }).$type<unknown[]>();
+			const base = blob(columnName, { mode: "json" });
+			switch (prop.type) {
+				case "integer":
+					builder = base.$type<{ payload: bigint[] }>();
+					break;
+				case "real":
+					builder = base.$type<{ payload: number[] }>();
+					break;
+				case "text":
+					builder = base.$type<{ payload: string[] }>();
+					break;
+				case "boolean":
+					builder = base.$type<{ payload: boolean[] }>();
+					break;
+				case "blob":
+					builder = base.$type<{ payload: Uint8Array[] }>();
+					break;
+				case "datetime":
+					builder = base.$type<{ payload: Date[] | bigint[] | string[] }>();
+					break;
+				case "node":
+					builder = base.$type<{ payload: object[] }>();
+					break;
+				case "enum":
+					builder = base.$type<{ payload: string[] | number[] }>();
+					break;
+				default:
+					throw new Error(`Unsupported type: ${prop.type}`);
+			}
 		} else {
 			switch (prop.type) {
 				case "integer":
@@ -37,11 +65,11 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 				case "text":
 					builder = text(columnName);
 					break;
-				case "blob":
-					builder = blob(columnName, { mode: "buffer" });
-					break;
 				case "boolean":
 					builder = integer(columnName, { mode: "boolean" });
+					break;
+				case "blob":
+					builder = blob(columnName, { mode: "buffer" });
 					break;
 				case "datetime":
 					builder = integer(columnName, { mode: "timestamp" });
@@ -97,6 +125,12 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 			}
 		}
 
+		if (prop.isIdentifier) {
+			builder = builder.primaryKey({
+				autoIncrement: prop.isAutoIncrement,
+			}) as typeof builder;
+		}
+
 		if (!prop.isOptional) {
 			builder = builder.notNull() as typeof builder;
 		}
@@ -105,26 +139,18 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 			builder = builder.unique() as typeof builder;
 		}
 
-		if (prop.isIdentifier) {
-			builder = builder.primaryKey(
-				prop.identifierConfigs as { autoIncrement?: boolean },
+		if (prop.hasDefault) {
+			builder = builder.default(prop.defaultValue as never) as typeof builder;
+		}
+
+		if (prop.reference) {
+			builder = builder.references(
+				prop.reference.ref,
+				prop.reference.actions,
 			) as typeof builder;
 		}
 
-		const options = prop.getOptions();
-		if (options.default !== undefined) {
-			builder = builder.default(options.default) as typeof builder;
-		}
-
-		const refOptions = options.references;
-		if (refOptions) {
-			builder = builder.references(refOptions.ref, {
-				onDelete: refOptions.onDelete,
-				onUpdate: refOptions.onUpdate,
-			}) as typeof builder;
-		}
-
-		sqliteColumns[key] = builder as unknown as DrizzlePrimitive;
+		sqliteColumns[key] = builder;
 	}
 
 	return sqliteTable(name, sqliteColumns);

@@ -1,17 +1,16 @@
 import type { SQL } from "@/data/proxies/sqlite";
 import * as Primitive from "./primitive";
 import type { Property, PropertyBuilder } from "./property";
+import { makeBuilder } from "./property";
 
-const integerField = () => Primitive.integer.init();
-const realField = () => Primitive.real.init();
-const textField = () => Primitive.text.init();
-const blobField = () => Primitive.blob.init();
-const booleanField = () => Primitive.boolean.init();
-const datetimeField = () => Primitive.datetime.init();
-const nodeField = () => Primitive.node.init();
-function enumField(config: { options: string[] | Record<string, number> }) {
-	return Primitive.enum.init().enumOptions(config);
-}
+const integerField = makeBuilder(Primitive.integer.init());
+const realField = makeBuilder(Primitive.real.init());
+const textField = makeBuilder(Primitive.text.init());
+const blobField = makeBuilder(Primitive.blob.init());
+const booleanField = makeBuilder(Primitive.boolean.init());
+const datetimeField = makeBuilder(Primitive.datetime.init());
+const nodeField = makeBuilder(Primitive.node.init());
+const enumField = makeBuilder(Primitive.enum.init());
 
 const Field = (): FieldBuilder => ({
 	integer: integerField,
