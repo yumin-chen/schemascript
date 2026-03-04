@@ -5,13 +5,13 @@ const macroValue = Constant();
 
 const value = {
 	now:
-		macroValue.now?.__type === "sql"
-			? sql.raw(macroValue.now.value)
-			: macroValue.now,
+		typeof macroValue.now === "string"
+			? macroValue.now
+			: sql.raw(macroValue.now.value),
 	emptyArray:
-		macroValue.emptyArray?.__type === "sql"
-			? sql.raw(macroValue.emptyArray.value)
-			: macroValue.emptyArray,
+		typeof macroValue.emptyArray === "string"
+			? macroValue.emptyArray
+			: sql.raw(macroValue.emptyArray.value),
 };
 
 export { value };

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { Property } from "./property";
 import { field } from "./_field";
+import { Property } from "./property";
 
 describe("Field", () => {
 	test("should provide builders for all primitive types", () => {

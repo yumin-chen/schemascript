@@ -1,8 +1,6 @@
-import { sql } from "@/data/proxies/sqlite";
-
 const SqlValue = () => ({
-	now: { __type: "sql", value: "CURRENT_TIMESTAMP" },
-	emptyArray: { __type: "sql", value: "'[]'" },
+	now: { __type: "sql", value: "CURRENT_TIMESTAMP" } as const,
+	emptyArray: { __type: "sql", value: "'[]'" } as const,
 });
 
 const sqlValue = SqlValue();
@@ -20,7 +18,6 @@ const constant = () => ({
 // @ts-expect-error
 const BUILD_TARGET = process.env.BUILD_TARGET;
 
-const Constant = () =>
-	(BUILD_TARGET === "SQLite" && sqlConstant()) || constant();
+const Constant = () => (BUILD_TARGET === "SQLite" ? sqlConstant() : constant());
 
 export { Constant };

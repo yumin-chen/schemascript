@@ -1,18 +1,18 @@
 import type { SchemaBuilder } from "@artefact/schemascript";
-import { field, Schema, Table, value } from "@artefact/schemascript";
+import { Schema, Table, value } from "@artefact/schemascript";
 
-const artefact: SchemaBuilder = () => ({
+const artefact: SchemaBuilder = (prop) => ({
 	/**
 	 * The full path including filename of the artefact.
 	 *
 	 */
-	pathname: field.text().unique(),
+	pathname: prop.text().unique(),
 
 	/**
 	 * The mode type of the artefact.
 	 *
 	 */
-	mode: field.enum({
+	mode: prop.enum({
 		options: {
 			blob: 100644,
 			executable: 100755,
@@ -26,19 +26,19 @@ const artefact: SchemaBuilder = () => ({
 	 * The cryptographic hash digest of the artefact content.
 	 *
 	 */
-	digest: field.text().unique(),
+	digest: prop.text().unique(),
 
 	/**
 	 * The last modification timestamp of the artefact.
 	 *
 	 */
-	modified_at: field.timestamp().default(value.now),
+	modified_at: prop.timestamp().default(value.now),
 
 	/**
 	 * The creation timestamp of the artefact.
 	 *
 	 */
-	created_at: field.timestamp().default(value.now),
+	created_at: prop.timestamp().default(value.now),
 });
 
 const artefactSchema = Schema("Artefact", artefact);
