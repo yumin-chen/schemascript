@@ -13,6 +13,7 @@ class Property<
 			EnumOptionType
 		> = {
 			isUnique: false,
+			isOptional: false,
 		},
 	) {}
 
@@ -52,6 +53,11 @@ class Property<
 		return this.setOptions({ isUnique: true });
 	}
 
+	optional(): Property<TypeName, JavaScriptType | null, EnumOptionType> {
+		if (this.isOptional) return this;
+		return this.setOptions({ isOptional: true });
+	}
+
 	get type(): TypeName {
 		return this._type;
 	}
@@ -64,17 +70,18 @@ class Property<
 		return this.options.enumOptions;
 	}
 
-	optional(): Property<TypeName, JavaScriptType | null, EnumOptionType> {
-		return this.setOptions({ isOptional: true }) as Property<
-			TypeName,
-			JavaScriptType | null,
-			EnumOptionType
-		>;
+	get isOptional(): boolean {
+		return !!this.options.isOptional;
+	}
+
+	get isUnique(): boolean {
+		return !!this.options.isUnique;
 	}
 
 	toString(): string {
 		const name = this.name ?? "unnamed";
 		const unique = this.isUnique ? ".unique()" : "";
+		const optional = this.isOptional ? ".optional()" : "";
 
 		if (this._type === "enum") {
 			const config = this.enumConfigs as
@@ -84,18 +91,18 @@ class Property<
 			if (options) {
 				if (Array.isArray(options)) {
 					const values = options.map((v) => `"${v}"`).join(", ");
-					return `enum("${name}",\n    {   options:\n\t\t\t[${values}]\n\t}\n   )${unique}`;
+					return `enum("${name}",\n    {   options:\n\t\t\t[${values}]\n\t}\n   )${optional}${unique}`;
 				}
 				if (typeof options === "object") {
 					const values = Object.entries(options)
 						.map(([k, v]) => `\t\t\t\t${k}: ${v},`)
 						.join("\n");
-					return `enum("${name}",\n    {   options:\n\t\t\t{\n${values}\n\t\t\t}\n\t\t}\n   )${unique}`;
+					return `enum("${name}",\n    {   options:\n\t\t\t{\n${values}\n\t\t\t}\n\t\t}\n   )${optional}${unique}`;
 				}
 			}
 		}
 
-		return `${this._type}("${name}")${unique}`;
+		return `${this._type}("${name}")${optional}${unique}`;
 	}
 
 	toTypeScriptType(): string {
@@ -144,6 +151,10 @@ class Property<
 				typeStr = "unknown";
 		}
 
+		if (this.isOptional) {
+			typeStr = `${typeStr} | null`;
+		}
+
 		return typeStr;
 	}
 
@@ -155,10 +166,11 @@ class Property<
 	}
 }
 
-type PropertyOptions = {
+type PropertyOptions<_JavaScriptType = unknown, EnumOptionType = unknown> = {
 	name?: string;
 	enumOptions?: EnumOptionType;
 	isUnique?: boolean;
+	isOptional?: boolean;
 };
 
 type PropertyBuilder<

@@ -32,10 +32,10 @@ function dedent(strings: TemplateStringsArray, ...values: unknown[]): string {
 	let start = 0;
 	let end = dedentedLines.length;
 
-	while (start < end && dedentedLines[start]!.trim().length === 0) {
+	while (start < end && dedentedLines[start]?.trim().length === 0) {
 		start++;
 	}
-	while (end > start && dedentedLines[end - 1]!.trim().length === 0) {
+	while (end > start && dedentedLines[end - 1]?.trim().length === 0) {
 		end--;
 	}
 
