@@ -28,9 +28,8 @@ export const testTable = sqliteTable("test_table_unique", {
 `;
 
 		const result = await runMigrationTest(
-			"unique_e2e",
+			join(process.cwd(), "unique_e2e"),
 			schemaContent,
-			fallbackSchema,
 		);
 		sqlContent = result.sqlContent;
 		cleanupFn = result.cleanup;

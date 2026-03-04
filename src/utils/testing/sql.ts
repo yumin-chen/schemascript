@@ -5,7 +5,7 @@ import { $ } from "bun";
 export async function runMigrationTest(
 	tempDir: string,
 	schemaContent: string,
-): Promise<string> {
+): Promise<{ sqlContent: string; cleanup: () => Promise<void> }> {
 	if (fs.existsSync(tempDir)) fs.rmSync(tempDir, { recursive: true });
 	fs.mkdirSync(tempDir, { recursive: true });
 
@@ -67,5 +67,15 @@ export async function runMigrationTest(
 		throw new Error("No migration files generated");
 	}
 
-	return fs.readFileSync(path.join(migrationDir, migrationFiles[0]), "utf8");
+	const sqlContent = fs.readFileSync(
+		path.join(migrationDir, migrationFiles[0]),
+		"utf8",
+	);
+
+	return {
+		sqlContent,
+		cleanup: async () => {
+			if (fs.existsSync(tempDir)) fs.rmSync(tempDir, { recursive: true });
+		},
+	};
 }

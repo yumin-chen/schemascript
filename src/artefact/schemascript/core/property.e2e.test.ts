@@ -6,10 +6,12 @@ import { runMigrationTest } from "../../../utils/testing/sql";
 describe("Modifiers E2E (SQL Generation)", () => {
 	const tempDir = path.join(process.cwd(), "temp-e2e-modifiers");
 	let generatedSql = "";
+	let cleanupFn: () => Promise<void>;
 
 	beforeEach(async () => {
+		const libraryPath = path.join(process.cwd(), "src/artefact/schemascript/index.ts");
 		const schemaContent = `
-import { field, Table } from "../src/artefact/schemascript";
+import { field, Table } from "${libraryPath}";
 
 export const parent = Table("parent", (prop) => ({
 	id: prop.integer().identifier({ autoIncrement: true }),
@@ -24,13 +26,13 @@ export const testTable = Table("test_modifiers", (prop) => ({
 	tags: prop.text().array(),
 }));
 `;
-		generatedSql = await runMigrationTest(tempDir, schemaContent);
+		const result = await runMigrationTest(tempDir, schemaContent);
+		generatedSql = result.sqlContent;
+		cleanupFn = result.cleanup;
 	});
 
-	afterEach(() => {
-		if (fs.existsSync(tempDir)) {
-			fs.rmSync(tempDir, { recursive: true });
-		}
+	afterEach(async () => {
+		if (cleanupFn) await cleanupFn();
 	});
 
 	test("drizzle-kit generate should produce valid SQL", () => {

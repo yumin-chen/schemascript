@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { Schema, Table } from "@artefact/schemascript";
+import { Schema } from "./schema";
+import { Table } from "./table";
 
 describe("Optional Modifier Integration", () => {
 	const OptionalSchema = (f: any) => ({

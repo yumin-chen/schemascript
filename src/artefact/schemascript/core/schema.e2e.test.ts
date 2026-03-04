@@ -28,9 +28,8 @@ export const testTable = sqliteTable("test_table_optional", {
 `;
 
 		const result = await runMigrationTest(
-			"schema_e2e_optional",
+			join(process.cwd(), "schema_e2e_optional"),
 			schemaContent,
-			fallbackSchema,
 		);
 		sqlContent = result.sqlContent;
 		cleanupFn = result.cleanup;
