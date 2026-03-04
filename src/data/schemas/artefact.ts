@@ -4,8 +4,9 @@ import { Schema, Table } from "@artefact/schemascript";
 const artefact: SchemaBuilder = (prop) => ({
 	/**
 	 * The full path including filename of the artefact.
+	 *
 	 */
-	pathname: prop.text(),
+	pathname: prop.text().unique(),
 
 	/**
 	 * The mode type of the artefact.
@@ -23,7 +24,7 @@ const artefact: SchemaBuilder = (prop) => ({
 	/**
 	 * The cryptographic hash digest of the artefact content.
 	 */
-	digest: prop.text(),
+	digest: prop.text().unique(),
 
 	/**
 	 * The last modification timestamp of the artefact.

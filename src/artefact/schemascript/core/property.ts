@@ -11,7 +11,9 @@ class Property<
 		private readonly options: PropertyOptions<
 			JavaScriptType,
 			EnumOptionType
-		> = {},
+		> = {
+			isUnique: false,
+		},
 	) {}
 
 	getOptions(): PropertyOptions<JavaScriptType, EnumOptionType> {
@@ -45,6 +47,11 @@ class Property<
 		return this.setOptions({ enumOptions });
 	}
 
+	unique(): Property<TypeName, JavaScriptType, EnumOptionType> {
+		if (this.isUnique) return this;
+		return this.setOptions({ isUnique: true });
+	}
+
 	get type(): TypeName {
 		return this._type;
 	}
@@ -67,6 +74,7 @@ class Property<
 
 	toString(): string {
 		const name = this.name ?? "unnamed";
+		const unique = this.isUnique ? ".unique()" : "";
 
 		if (this._type === "enum") {
 			const config = this.enumConfigs as
@@ -76,24 +84,18 @@ class Property<
 			if (options) {
 				if (Array.isArray(options)) {
 					const values = options.map((v) => `"${v}"`).join(", ");
-					return `enum("${name}",\n    {   options:\n\t\t\t[${values}]\n\t}\n   )`;
+					return `enum("${name}",\n    {   options:\n\t\t\t[${values}]\n\t}\n   )${unique}`;
 				}
 				if (typeof options === "object") {
 					const values = Object.entries(options)
 						.map(([k, v]) => `\t\t\t\t${k}: ${v},`)
 						.join("\n");
-					return `enum("${name}",\n    {   options:\n\t\t\t{\n${values}\n\t\t\t}\n\t\t}\n   )`;
+					return `enum("${name}",\n    {   options:\n\t\t\t{\n${values}\n\t\t\t}\n\t\t}\n   )${unique}`;
 				}
 			}
 		}
 
-		let str = `${this._type}("${name}")`;
-		if (this.options.isOptional) str += ".optional()";
-		if (this.options.isUnique) str += ".unique()";
-		if (this.options.isIdentifier) str += ".identifier()";
-		if (this.options.references) str += ".references()";
-		if (this.options.defaultValue !== undefined) str += ".default()";
-		return str;
+		return `${this._type}("${name}")${unique}`;
 	}
 
 	toTypeScriptType(): string {
@@ -108,11 +110,11 @@ class Property<
 			case "text":
 				typeStr = "string";
 				break;
-			case "blob":
-				typeStr = "Uint8Array";
-				break;
 			case "boolean":
 				typeStr = "boolean";
+				break;
+			case "blob":
+				typeStr = "Uint8Array";
 				break;
 			case "datetime":
 				typeStr = "Date";
@@ -142,10 +144,6 @@ class Property<
 				typeStr = "unknown";
 		}
 
-		if (this.options.isOptional) {
-			typeStr += " | null";
-		}
-
 		return typeStr;
 	}
 
@@ -160,6 +158,7 @@ class Property<
 type PropertyOptions = {
 	name?: string;
 	enumOptions?: EnumOptionType;
+	isUnique?: boolean;
 };
 
 type PropertyBuilder<

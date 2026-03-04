@@ -8,9 +8,19 @@ describe("Artefact Schema", () => {
 		const schemaExpected = _$`
 			Schema: Artefact
 			{
-			   text("pathname"),
-			   integer("mode"),
-			   text("digest"),
+			   text("pathname").unique(),
+			   enum("mode",
+			    {   options:
+						{
+							blob: 100644,
+							executable: 100755,
+							symlink: 120000,
+							directory: 40000,
+							submodule: 160000,
+						}
+					}
+			   ),
+			   text("digest").unique(),
 			   datetime("modified_at"),
 			   datetime("created_at")
 			}`;

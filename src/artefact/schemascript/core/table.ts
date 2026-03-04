@@ -117,6 +117,10 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 			builder = builder.notNull() as typeof builder;
 		}
 
+		if (prop.isUnique) {
+			builder = builder.unique() as typeof builder;
+		}
+
 		sqliteColumns[key] = builder;
 	}
 

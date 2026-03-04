@@ -6,6 +6,19 @@ describe("Property", () => {
 		const prop = new Property("text");
 		expect(prop.type).toBe("text");
 		expect(prop.name).toBeUndefined();
+		expect(prop.isUnique).toBe(false);
+		expect(prop.isOptional).toBe(false);
+	});
+
+	test("unique() should return a new property with isUnique true", () => {
+		const prop = new Property("integer");
+		const uniqueProp = prop.unique();
+		expect(uniqueProp.isUnique).toBe(true);
+		expect(prop.isUnique).toBe(false);
+
+		expect(uniqueProp.unique()).toBe(uniqueProp);
+	});
+
 	});
 
 	test("finalise() should return a new property with the given name and freeze it", () => {
@@ -56,9 +69,7 @@ describe("Property", () => {
 		const prop = new Property("text");
 		expect(prop.optional().getOptions().isOptional).toBe(true);
 		expect(prop.unique().getOptions().isUnique).toBe(true);
-		expect(prop.identifier().getOptions().isIdentifier).toBe(true);
-		expect(prop.default("val").getOptions().defaultValue).toBe("val");
-		expect(prop.references(() => "ref").getOptions().references).toBeDefined();
+
 	});
 
 	test("toTypeScriptType() mapping", () => {

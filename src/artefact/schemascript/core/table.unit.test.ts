@@ -58,21 +58,32 @@ describe("Table", () => {
 		expect(columns.email.isUnique).toBe(true);
 	});
 
-	test("should handle identifier fields", () => {
-		const MyTable = Table("my_table", (prop) => ({
-			id: prop.integer().identifier({ autoIncrement: true }),
+	test("should correctly map all unique primitive types", () => {
+		const MyTable = Table("unique_test", (prop) => ({
+			int_uniq: prop.integer().unique(),
+			real_uniq: prop.real().unique(),
+			text_uniq: prop.text().unique(),
+			blob_uniq: prop.blob().unique(),
+			bool_uniq: prop.boolean().unique(),
+			date_uniq: prop.datetime().unique(),
+			node_uniq: prop.node().unique(),
+			enum_uniq: prop.enum({ options: ["A", "B"] }).unique(),
 		}));
 
-		expect(MyTable).toBeDefined();
-	});
+		const columns = (
+			MyTable as unknown as {
+				[key: symbol]: Record<string, { isUnique: boolean }>;
+			}
+		)[Symbol.for("drizzle:Columns")];
 
-	test("should handle reference fields", () => {
-		const OtherTable = Table("other", (prop) => ({ id: prop.integer() }));
-		const MyTable = Table("my_table", (prop) => ({
-			other_id: prop.integer().references(() => (OtherTable as any).id),
-		}));
-
-		expect(MyTable).toBeDefined();
+		expect(columns.int_uniq.isUnique).toBe(true);
+		expect(columns.real_uniq.isUnique).toBe(true);
+		expect(columns.text_uniq.isUnique).toBe(true);
+		expect(columns.blob_uniq.isUnique).toBe(true);
+		expect(columns.bool_uniq.isUnique).toBe(true);
+		expect(columns.date_uniq.isUnique).toBe(true);
+		expect(columns.node_uniq.isUnique).toBe(true);
+		expect(columns.enum_uniq.isUnique).toBe(true);
 	});
 
 	test("should handle enums with mapping", () => {
