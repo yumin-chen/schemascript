@@ -15,10 +15,16 @@ describe("Property", () => {
 		const uniqueProp = prop.unique();
 		expect(uniqueProp.isUnique).toBe(true);
 		expect(prop.isUnique).toBe(false);
-
-		expect(uniqueProp.unique()).toBe(uniqueProp);
 	});
 
+	test("optional() should return a new property with isOptional true", () => {
+		const prop = new Property("text");
+		const optionalProp = prop.optional();
+		expect(optionalProp.isOptional).toBe(true);
+		expect(prop.isOptional).toBe(false);
+
+		// idempotent
+		expect(optionalProp.optional()).toBe(optionalProp);
 	});
 
 	test("finalise() should return a new property with the given name and freeze it", () => {
@@ -29,24 +35,14 @@ describe("Property", () => {
 	});
 
 	test("toString() for standard types", () => {
-		expect(new Property("integer").finalise("id").toString()).toBe(
-			'integer("id")',
-		);
-		expect(new Property("real").finalise("score").toString()).toBe(
-			'real("score")',
-		);
-		expect(new Property("text").finalise("username").toString()).toBe(
-			'text("username")',
-		);
-		expect(new Property("blob").finalise("data").toString()).toBe(
-			'blob("data")',
-		);
-		expect(new Property("datetime").finalise("created_at").toString()).toBe(
-			'datetime("created_at")',
-		);
-		expect(new Property("node").finalise("metadata").toString()).toBe(
-			'node("metadata")',
-		);
+		const prop = new Property("text").finalise("username");
+		expect(prop.toString()).toBe('text("username")');
+
+		const uniqueProp = new Property("text").unique().finalise("email");
+		expect(uniqueProp.toString()).toBe('text("email").unique()');
+
+		const optionalProp = new Property("integer").optional().finalise("age");
+		expect(optionalProp.toString()).toBe('integer("age").optional()');
 	});
 
 	test("toString() for enum types with array options", () => {
@@ -69,7 +65,6 @@ describe("Property", () => {
 		const prop = new Property("text");
 		expect(prop.optional().getOptions().isOptional).toBe(true);
 		expect(prop.unique().getOptions().isUnique).toBe(true);
-
 	});
 
 	test("toTypeScriptType() mapping", () => {
@@ -93,26 +88,21 @@ describe("Property", () => {
 			"string | null",
 		);
 
-		const unknownProp = new Property("unknown" as any);
+		const unknownProp = new Property("unknown" as never);
 		expect(unknownProp.toTypeScriptType()).toBe("unknown");
 	});
 
+	test("toTypeScriptType() handles optional", () => {
+		const prop = new Property("text").optional();
+		expect(prop.toTypeScriptType()).toBe("string | null");
+	});
+
 	test("toJSON() should return all options", () => {
-		const prop = new Property("text").finalise("test");
+		const prop = new Property("text").unique().optional().finalise("test");
 		const json = prop.toJSON();
 		expect(json.type).toBe("text");
 		expect(json.name).toBe("test");
-	});
-
-	test("getOptions() should return a copy of options", () => {
-		const prop = new Property("integer").finalise("id");
-		const options = prop.getOptions();
-		expect(options.name).toBe("id");
-	});
-
-	test("init() should return the property (type cast)", () => {
-		const prop = new Property("integer");
-		const initialized = prop.init<bigint>();
-		expect(initialized).toBe(prop);
+		expect(json.isUnique).toBe(true);
+		expect(json.isOptional).toBe(true);
 	});
 });

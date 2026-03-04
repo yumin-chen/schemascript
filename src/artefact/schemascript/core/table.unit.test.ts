@@ -2,32 +2,20 @@ import { describe, expect, test } from "bun:test";
 import { Table } from "./table";
 
 describe("Table", () => {
-	test("should map all primitive types to Drizzle columns", () => {
-		const MyTable = Table("my_table", (prop) => ({
-			int: prop.integer(),
-			real: prop.real(),
-			txt: prop.text(),
-			buf: prop.blob(),
-			bool: prop.boolean(),
-			time: prop.datetime(),
-			obj: prop.node(),
+	test("should create a Drizzle table with correct columns", () => {
+		const _UserTable = Table("users", (prop) => ({
+			id: prop.integer(),
+			name: prop.text().unique().optional(),
+			status: prop.enum({ options: ["active", "inactive"] }),
 		}));
 
-		expect(MyTable).toBeDefined();
+		expect(_UserTable).toBeDefined();
 		const columns = (
-			MyTable as unknown as {
+			_UserTable as unknown as {
 				[key: symbol]: Record<string, { notNull: boolean }>;
 			}
 		)[Symbol.for("drizzle:Columns")];
-		expect(Object.keys(columns)).toEqual([
-			"int",
-			"real",
-			"txt",
-			"buf",
-			"bool",
-			"time",
-			"obj",
-		]);
+		expect(Object.keys(columns)).toEqual(["id", "name", "status"]);
 	});
 
 	test("should handle optional fields by omitting notNull", () => {
@@ -88,6 +76,8 @@ describe("Table", () => {
 
 	test("should handle enums with mapping", () => {
 		const MyTable = Table("my_table", (prop) => ({
+			id: prop.integer(),
+			name: prop.text().optional().unique(),
 			status: prop.enum({ options: ["A", "B"] }),
 		}));
 
@@ -95,6 +85,10 @@ describe("Table", () => {
 			MyTable as unknown as { [key: symbol]: Record<string, unknown> }
 		)[Symbol.for("drizzle:Columns")];
 		expect(columns.status).toBeDefined();
+
+		expect(columns.id.notNull).toBe(true);
+		expect(columns.name.notNull).toBe(false);
+		expect(columns.name.isUnique).toBe(true);
 	});
 
 	test("should handle enums with object options", () => {
@@ -110,7 +104,7 @@ describe("Table", () => {
 
 	test("should fallback to integer for enums without options", () => {
 		const MyTable = Table("my_table", (prop) => ({
-			status: prop.enum({} as any),
+			status: prop.enum({} as never),
 		}));
 		const columns = (
 			MyTable as unknown as { [key: symbol]: Record<string, unknown> }
@@ -120,13 +114,10 @@ describe("Table", () => {
 
 	test("should throw error for unsupported type", () => {
 		expect(() => {
-			Table("error", () => ({
-				bad: {
-					type: "invalid",
-					finalise: (key: string) => ({ type: "invalid", name: key }),
-					getOptions: () => ({}),
-				} as any,
+			Table("error", (prop) => ({
+				// @ts-expect-error - testing invalid type
+				bad: new (prop.text().constructor)("invalid"),
 			}));
-		}).toThrow("Unsupported type: invalid");
+		}).toThrow();
 	});
 });

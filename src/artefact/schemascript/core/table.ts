@@ -1,4 +1,7 @@
-import type { primitive as DrizzlePrimitive } from "@/data/proxies/sqlite";
+import type {
+	AnySQLiteColumnBuilder,
+	primitive as DrizzlePrimitive,
+} from "@/data/proxies/sqlite";
 import {
 	blob,
 	customType,
@@ -19,7 +22,7 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 
 	for (const [key, prop] of Object.entries(fields)) {
 		const columnName = prop.name ?? key;
-		let builder: DrizzlePrimitive;
+		let builder: AnySQLiteColumnBuilder;
 
 		switch (prop.type) {
 			case "integer":
@@ -44,7 +47,7 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 				builder = blob(columnName, { mode: "json" }).$type<object>();
 				break;
 			case "enum": {
-				const config = (prop as any).enumConfigs as
+				const config = prop.enumConfigs as
 					| { options: string[] | Record<string, number> }
 					| undefined;
 
@@ -90,30 +93,7 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 				throw new Error(`Unsupported type: ${prop.type}`);
 		}
 
-		const options = prop.getOptions();
-
-		if (options.isIdentifier) {
-			builder = builder.primaryKey({
-				autoIncrement: options.autoIncrement,
-			}) as typeof builder;
-		}
-
-		if (options.isUnique) {
-			builder = builder.unique() as typeof builder;
-		}
-
-		if (options.references) {
-			builder = builder.references(options.references, {
-				onDelete: options.onDelete as any,
-				onUpdate: options.onUpdate as any,
-			}) as typeof builder;
-		}
-
-		if (options.defaultValue !== undefined) {
-			builder = builder.default(options.defaultValue) as typeof builder;
-		}
-
-		if (!options.isOptional) {
+		if (!prop.isOptional) {
 			builder = builder.notNull() as typeof builder;
 		}
 
@@ -121,7 +101,7 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 			builder = builder.unique() as typeof builder;
 		}
 
-		sqliteColumns[key] = builder;
+		sqliteColumns[key] = builder as unknown as DrizzlePrimitive;
 	}
 
 	return sqliteTable(name, sqliteColumns);
