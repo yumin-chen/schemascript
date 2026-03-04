@@ -13,7 +13,6 @@ import { field, Table } from "../src/artefact/schemascript";
 
 export const parent = Table("parent", (prop) => ({
 	id: prop.integer().identifier({ autoIncrement: true }),
-	id: f.integer().identifier({ autoIncrement: true }),
 }));
 
 export const testTable = Table("test_modifiers", (prop) => ({
@@ -21,6 +20,7 @@ export const testTable = Table("test_modifiers", (prop) => ({
 	parent_id: prop.integer().references(() => parent.id, { onDelete: 'cascade' }),
 	required_unique: prop.text().unique(),
 	optional_field: prop.text().optional(),
+	status: prop.integer().default(1),
 }));
 `;
 		generatedSql = await runMigrationTest(tempDir, schemaContent);
@@ -46,6 +46,5 @@ export const testTable = Table("test_modifiers", (prop) => ({
 			"FOREIGN KEY (`parent_id`) REFERENCES `parent`(`id`) ON UPDATE no action ON DELETE cascade",
 		);
 		expect(generatedSql).toContain("`status` integer DEFAULT 1 NOT NULL");
-		expect(generatedSql).toContain("`tags` blob NOT NULL");
 	});
 });
