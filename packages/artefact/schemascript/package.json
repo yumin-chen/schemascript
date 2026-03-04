@@ -3,11 +3,16 @@
 	"version": "0.1.0-rc.1",
 	"description": "SchemaScript for Artefact",
 	"type": "module",
-	"main": "./dist/index.js",
-	"module": "./dist/index.js",
-	"types": "./dist/index.d.ts",
+	"main": "./index.js",
+	"module": "./index.js",
+	"types": "./index.d.ts",
+	"scripts": {
+		"build": "bun run scripts/build.ts"
+	},
 	"files": [
-		"dist"
+		"index.js",
+		"index.d.ts",
+		"core"
 	],
 	"peerDependencies": {
 		"drizzle-orm": ">=0.45.1"

@@ -8,6 +8,13 @@
       "when": 1772642878069,
       "tag": "0000_complete_secret_warriors",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1772644765026,
+      "tag": "0001_chief_madrox",
+      "breakpoints": true
     }
   ]
 }

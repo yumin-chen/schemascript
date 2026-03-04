@@ -7,7 +7,9 @@
 	],
 	"scripts": {
 		"fix": "bun run --cwd packages/artefact/core fix",
-		"build": "bun run --cwd packages/artefact/core build",
+		"build": "bun run build:schemascript && bun run build:core",
+		"build:schemascript": "bun run --cwd packages/artefact/schemascript build",
+		"build:core": "bun run --cwd packages/artefact/core build",
 		"seed": "bun run --cwd packages/artefact/core seed",
 		"start": "bun run --cwd packages/artefact/core start",
 		"test": "bun test packages/**/*"

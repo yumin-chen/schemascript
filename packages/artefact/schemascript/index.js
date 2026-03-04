@@ -1,4 +1,4 @@
-// src/utils/freeze.ts
+// ../core/src/utils/freeze.ts
 function deepFreeze(obj) {
   if (obj === null || typeof obj !== "object") {
     return obj;
@@ -13,7 +13,7 @@ function deepFreeze(obj) {
   return Object.freeze(obj);
 }
 
-// ../schemascript/core/property.ts
+// core/property.ts
 class Property {
   _type;
   options;
@@ -224,7 +224,7 @@ ${values}
   }
 }
 
-// ../schemascript/core/primitive.ts
+// core/primitive.ts
 var integer = new Property("integer");
 var real = new Property("real");
 var text = new Property("text");
@@ -233,7 +233,7 @@ var timestamp = new Property("timestamp");
 var boolean = new Property("boolean");
 var node = new Property("node");
 var enumeration = new Property("enum");
-// ../schemascript/core/_field.ts
+// core/_field.ts
 var integerField = () => integer.init();
 var realField = () => real.init();
 var textField = () => text.init();
@@ -256,7 +256,7 @@ var Field = () => ({
 });
 var field = Field();
 
-// ../schemascript/core/schema.ts
+// core/schema.ts
 function Schema(name, schemaBuilder) {
   const rawFields = schemaBuilder(field);
   const fields = Object.fromEntries(Object.entries(rawFields).map(([key, prop]) => [key, prop.finalise(key)]));
@@ -291,7 +291,7 @@ ${fieldDefinitions}
   };
   return schema;
 }
-// src/data/proxies/sqlite.ts
+// ../core/src/data/proxies/sqlite.ts
 import { sql } from "drizzle-orm";
 import {
   blob as blob2,
@@ -303,7 +303,7 @@ import {
 } from "drizzle-orm/sqlite-core";
 import { drizzle as ordb } from "drizzle-orm/sqlite-proxy";
 
-// ../schemascript/core/table.ts
+// core/table.ts
 function Table(name, schemaBuilder) {
   const rawFields = schemaBuilder(field);
   const fields = Object.fromEntries(Object.entries(rawFields).map(([key, prop]) => [key, prop.finalise(key)]));
@@ -424,16 +424,10 @@ function Table(name, schemaBuilder) {
   }
   return sqliteTable(name, sqliteColumns);
 }
-// ../schemascript/core/value.ts
+// core/value.ts
 var macroValue = {
-  now: {
-    __type: "sql",
-    value: "CURRENT_TIMESTAMP"
-  },
-  emptyArray: {
-    __type: "sql",
-    value: "'[]'"
-  }
+  now: "now",
+  emptyArray: "[]"
 };
 var value = {
   now: typeof macroValue.now === "string" ? macroValue.now : sql.raw(macroValue.now.value),
