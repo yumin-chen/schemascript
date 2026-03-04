@@ -104,6 +104,13 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 			builder = builder.unique() as typeof builder;
 		}
 
+		if (prop.reference) {
+			builder = builder.references(
+				prop.reference.ref,
+				prop.reference.actions,
+			) as typeof builder;
+		}
+
 		sqliteColumns[key] = builder;
 	}
 

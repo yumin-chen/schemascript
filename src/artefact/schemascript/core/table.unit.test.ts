@@ -82,6 +82,15 @@ describe("Table", () => {
 		expect(MyTable).toBeDefined();
 	});
 
+	test("should handle reference fields", () => {
+		const OtherTable = Table("other", () => ({ id: field.integer() }));
+		const MyTable = Table("my_table", () => ({
+			other_id: field.integer().references(() => (OtherTable as any).id),
+		}));
+
+		expect(MyTable).toBeDefined();
+	});
+
 	test("should handle enums with mapping", () => {
 		const MyTable = Table("my_table", (prop) => ({
 			status: prop.enum({ options: ["A", "B"] }),

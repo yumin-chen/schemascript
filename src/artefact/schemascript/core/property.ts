@@ -1,5 +1,6 @@
 import { deepFreeze } from "@/utils/freeze";
 import type { primitive } from "./primitive";
+import type { AnySQLiteColumn } from "@/data/proxies/sqlite";
 
 class Property<
 	TypeName extends string,
@@ -78,6 +79,18 @@ class Property<
 		}) as Property<TypeName, JavaScriptType, EnumOptionType>;
 	}
 
+	references(
+		ref: () => AnySQLiteColumn,
+		actions?: ReferenceActions,
+	): Property<TypeName, JavaScriptType, EnumOptionType> {
+		return this.setOptions({
+			references: {
+				ref,
+				actions,
+			},
+		});
+	}
+
 	get type(): TypeName {
 		return this._type;
 	}
@@ -106,6 +119,10 @@ class Property<
 		return !!this.options.autoIncrement;
 	}
 
+	get reference(): PropertyOptions["references"] {
+		return this.options.references;
+	}
+
 	toString(): string {
 		const name = this.name ?? "unnamed";
 		const unique = this.isUnique ? ".unique()" : "";
@@ -115,6 +132,18 @@ class Property<
 				? ".identifier({ autoIncrement: true })"
 				: ".identifier()"
 			: "";
+		let references = "";
+		if (this.reference) {
+			const actions = this.reference.actions;
+			const actionParts: string[] = [];
+			if (actions?.onUpdate)
+				actionParts.push(`onUpdate: '${actions.onUpdate}'`);
+			if (actions?.onDelete)
+				actionParts.push(`onDelete: '${actions.onDelete}'`);
+			const actionStr =
+				actionParts.length > 0 ? `, { ${actionParts.join(", ")} }` : "";
+			references = `.references(...${actionStr})`;
+		}
 
 		if (this._type === "enum") {
 			const config = this.enumConfigs as
@@ -124,18 +153,18 @@ class Property<
 			if (options) {
 				if (Array.isArray(options)) {
 					const values = options.map((v) => `"${v}"`).join(", ");
-					return `enum("${name}",\n    {   options:\n\t\t\t[${values}]\n\t}\n   )${optional}${unique}${identifier}`;
+					return `enum("${name}",\n    {   options:\n\t\t\t[${values}]\n\t}\n   )${optional}${unique}${identifier}${references}`;
 				}
 				if (typeof options === "object") {
 					const values = Object.entries(options)
 						.map(([k, v]) => `\t\t\t\t${k}: ${v},`)
 						.join("\n");
-					return `enum("${name}",\n    {   options:\n\t\t\t{\n${values}\n\t\t\t}\n\t\t}\n   )${optional}${unique}${identifier}`;
+					return `enum("${name}",\n    {   options:\n\t\t\t{\n${values}\n\t\t\t}\n\t\t}\n   )${optional}${unique}${identifier}${references}`;
 				}
 			}
 		}
 
-		return `${this._type}("${name}")${optional}${unique}${identifier}`;
+		return `${this._type}("${name}")${optional}${unique}${identifier}${references}`;
 	}
 
 	toTypeScriptType(): string {
@@ -206,6 +235,22 @@ type PropertyOptions<_JavaScriptType = unknown, EnumOptionType = unknown> = {
 	isOptional?: boolean;
 	isIdentifier?: boolean;
 	autoIncrement?: boolean;
+	references?: {
+		ref: () => AnySQLiteColumn;
+		actions?: ReferenceActions;
+	};
+};
+
+type ReferenceAction =
+	| "cascade"
+	| "restrict"
+	| "no action"
+	| "set null"
+	| "set default";
+
+type ReferenceActions = {
+	onUpdate?: ReferenceAction;
+	onDelete?: ReferenceAction;
 };
 
 type PropertyBuilder<
@@ -216,4 +261,10 @@ type PropertyBuilder<
 	config?: EnumOptionType,
 ) => Property<TypeName, JavaScriptType, EnumOptionType>;
 
-export { Property, type PropertyOptions, type PropertyBuilder };
+export {
+	Property,
+	type PropertyOptions,
+	type PropertyBuilder,
+	type ReferenceAction,
+	type ReferenceActions,
+};

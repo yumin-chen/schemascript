@@ -11,8 +11,13 @@ describe("Modifiers E2E (SQL Generation)", () => {
 		const schemaContent = `
 import { field, Table } from "../src/artefact/schemascript";
 
+export const parent = Table("parent", (prop) => ({
+	id: prop.integer().identifier({ autoIncrement: true }),
+}));
+
 export const testTable = Table("test_modifiers", (prop) => ({
 	id: prop.integer().identifier({ autoIncrement: true }),
+	parent_id: prop.integer().references(() => parent.id, { onDelete: 'cascade' }),
 	required_unique: prop.text().unique(),
 	optional_field: prop.text().optional(),
 }));
@@ -45,5 +50,9 @@ export const testTable = Table("test_modifiers", (prop) => ({
 		expect(generatedSql).toContain(
 			"`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL",
 		);
+	});
+
+	test("drizzle-kit generate should produce FOREIGN KEY", () => {
+		expect(generatedSql).toContain('FOREIGN KEY (`parent_id`) REFERENCES `parent`(`id`) ON UPDATE no action ON DELETE cascade');
 	});
 });

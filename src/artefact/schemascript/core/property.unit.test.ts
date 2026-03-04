@@ -57,6 +57,13 @@ describe("Property", () => {
 		);
 	});
 
+	test("references should store reference metadata", () => {
+		const mockRef = () => ({} as any);
+		const prop = new Property("integer").references(mockRef, { onDelete: "cascade" });
+		expect(prop.reference?.ref).toBe(mockRef);
+		expect(prop.reference?.actions?.onDelete).toBe("cascade");
+	});
+
 	test("toString for primitive types", () => {
 		const prop = new Property("text").finalise("id");
 		expect(prop.toString()).toBe('text("id")');
@@ -76,6 +83,9 @@ describe("Property", () => {
 
 		const bothProp = new Property("text").optional().unique().finalise("desc");
 		expect(bothProp.toString()).toBe('text("desc").optional().unique()');
+
+		const refProp = new Property("integer").references(() => ({} as any), { onDelete: "cascade" }).finalise("user_id");
+		expect(refProp.toString()).toBe('integer("user_id").references(..., { onDelete: \'cascade\' })');
 	});
 
 	test("toString for enums with array options", () => {
