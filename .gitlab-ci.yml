@@ -1,0 +1,40 @@
+stages:
+  - test
+  - build
+  - publish
+
+variables:
+  BUN_VERSION: "latest"
+
+image: oven/bun:${BUN_VERSION}
+
+test:
+  stage: test
+  script:
+    - bun install
+    - bun test --coverage
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: lcov
+        path: coverage/lcov.info
+
+build:
+  stage: build
+  script:
+    - bun install
+    - bun run build
+  artifacts:
+    paths:
+      - dist/
+      - out/
+
+publish:
+  stage: publish
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - bun install
+    - cd packages/artefact/schemascript
+    - echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+    - npm publish --access public

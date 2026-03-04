@@ -19,7 +19,7 @@
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["src/*"],
-			"@artefact/*": ["src/artefact/*"]
+			"@artefact/*": ["packages/artefact/*"]
 		},
 
 		// Best practices

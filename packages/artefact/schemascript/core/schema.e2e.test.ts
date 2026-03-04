@@ -9,7 +9,7 @@ describe("Schema E2E - SQL Generation", () => {
 	beforeEach(async () => {
 		const libraryPath = join(
 			process.cwd(),
-			"src/artefact/schemascript/index.ts",
+			"packages/artefact/schemascript/index.ts",
 		);
 		const schemaContent = `
 import { field, Table } from "${libraryPath}";

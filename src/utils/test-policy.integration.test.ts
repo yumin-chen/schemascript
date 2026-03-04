@@ -4,6 +4,7 @@ import { basename, extname, join } from "node:path";
 
 describe("Test Policy Enforcement", () => {
 	const srcDir = join(process.cwd(), "src");
+	const pkgDir = join(process.cwd(), "packages");
 
 	const excludedFiles = [
 		"index.ts",
@@ -11,6 +12,7 @@ describe("Test Policy Enforcement", () => {
 		"_constant.ts",
 		"value.ts",
 		"primitive.ts",
+		"artefact.seeder.ts",
 	];
 
 	const excludedDirs = ["data/proxies", "scripts", "utils/testing"];
@@ -27,7 +29,10 @@ describe("Test Policy Enforcement", () => {
 	}
 
 	test("every source file should have a co-located test file", async () => {
-		const allFiles = await getFiles(srcDir);
+		const allSrcFiles = await getFiles(srcDir);
+		const allPkgFiles = await getFiles(pkgDir);
+		const allFiles = [...allSrcFiles, ...allPkgFiles];
+
 		const sourceFiles = allFiles.filter((file) => {
 			const ext = extname(file);
 			const base = basename(file);
