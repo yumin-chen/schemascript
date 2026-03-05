@@ -1,0 +1,53 @@
+image: oven/bun:latest
+
+stages:
+  - test
+  - build
+  - publish
+
+variables:
+  BUN_INSTALL_DIR: /usr/local/bin
+
+before_script:
+  - apt-get update && apt-get install -y git
+  - bun install --frozen-lockfile
+
+test:
+  stage: test
+  script:
+    - bun test --coverage --coverage-reporter=text --coverage-reporter=lcov --reporter=junit --reporter-outfile=junit.xml
+  coverage: '/All files\s*\|\s*(\d+(?:\.\d+)?)/'
+  artifacts:
+    when: always
+    paths:
+      - coverage/
+    reports:
+      junit: junit.xml
+
+build:
+  stage: build
+  script:
+    - bun run build
+  artifacts:
+    paths:
+      - dist/
+      - out/
+
+publish:
+  stage: publish
+  script:
+    - |
+      if [ -z "$NPM_TOKEN" ]; then
+        echo "NPM_TOKEN is not set, skipping publish"
+        exit 1
+      fi
+      echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      bun publish --access public
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+/'
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - package.json
+      when: manual
+      allow_failure: true
