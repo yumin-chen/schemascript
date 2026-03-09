@@ -8,6 +8,7 @@ describe("Table", () => {
 			real: prop.real(),
 			txt: prop.text(),
 			buf: prop.blob(),
+			bool: prop.boolean(),
 		}));
 
 		expect(MyTable).toBeDefined();
@@ -16,7 +17,7 @@ describe("Table", () => {
 				[key: symbol]: Record<string, { notNull: boolean }>;
 			}
 		)[Symbol.for("drizzle:Columns")];
-		expect(Object.keys(columns)).toEqual(["int", "real", "txt", "buf"]);
+		expect(Object.keys(columns)).toEqual(["int", "real", "txt", "buf", "bool"]);
 	});
 
 	test("should throw error for unsupported type", () => {

@@ -27,6 +27,9 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 			case "blob":
 				builder = blob(columnName, { mode: "buffer" });
 				break;
+			case "boolean":
+				builder = integer(columnName, { mode: "boolean" });
+				break;
 			default:
 				throw new Error(`Unsupported type: ${prop.type}`);
 		}

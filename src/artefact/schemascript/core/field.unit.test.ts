@@ -21,4 +21,9 @@ describe("field factory", () => {
 		const prop = field.blob();
 		expect(prop.type).toBe("blob");
 	});
+
+	test("boolean() should return a boolean property", () => {
+		const prop = field.boolean();
+		expect(prop.type).toBe("boolean");
+	});
 });

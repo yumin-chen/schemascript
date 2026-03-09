@@ -56,6 +56,9 @@ class Property<TypeName extends string, JavaScriptType = primitive> {
 			case "blob":
 				typeStr = "Uint8Array";
 				break;
+			case "boolean":
+				typeStr = "boolean";
+				break;
 			default:
 				typeStr = "unknown";
 		}

@@ -35,6 +35,7 @@ describe("Property", () => {
 		expect(new Property("real").toTypeScriptType()).toBe("number");
 		expect(new Property("text").toTypeScriptType()).toBe("string");
 		expect(new Property("blob").toTypeScriptType()).toBe("Uint8Array");
+		expect(new Property("boolean").toTypeScriptType()).toBe("boolean");
 
 		const unknownProp = new Property("unknown" as any);
 		expect(unknownProp.toTypeScriptType()).toBe("unknown");
