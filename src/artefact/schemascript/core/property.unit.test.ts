@@ -28,6 +28,18 @@ describe("Property", () => {
 		expect(new Property("blob").finalise("data").toString()).toBe(
 			'blob("data")',
 		);
+		expect(new Property("datetime").finalise("created_at").toString()).toBe(
+			'datetime("created_at")',
+		);
+	});
+
+	test("modifiers should update options", () => {
+		const prop = new Property("text");
+		expect(prop.optional().getOptions().isOptional).toBe(true);
+		expect(prop.unique().getOptions().isUnique).toBe(true);
+		expect(prop.identifier().getOptions().isIdentifier).toBe(true);
+		expect(prop.default("val").getOptions().defaultValue).toBe("val");
+		expect(prop.references(() => "ref").getOptions().references).toBeDefined();
 	});
 
 	test("toTypeScriptType() mapping", () => {
@@ -36,6 +48,11 @@ describe("Property", () => {
 		expect(new Property("text").toTypeScriptType()).toBe("string");
 		expect(new Property("blob").toTypeScriptType()).toBe("Uint8Array");
 		expect(new Property("boolean").toTypeScriptType()).toBe("boolean");
+		expect(new Property("datetime").toTypeScriptType()).toBe("Date");
+
+		expect(new Property("text").optional().toTypeScriptType()).toBe(
+			"string | null",
+		);
 
 		const unknownProp = new Property("unknown" as any);
 		expect(unknownProp.toTypeScriptType()).toBe("unknown");

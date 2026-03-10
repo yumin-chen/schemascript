@@ -18,7 +18,7 @@ class Property<TypeName extends string, JavaScriptType = primitive> {
 	}
 
 	init<T extends JavaScriptType = JavaScriptType>(): Property<TypeName, T> {
-		return this as unknown as Property<TypeName, T>;
+		return this as Property<TypeName, T>;
 	}
 
 	finalise<T extends JavaScriptType = JavaScriptType>(
@@ -36,9 +36,22 @@ class Property<TypeName extends string, JavaScriptType = primitive> {
 		return this.options.name;
 	}
 
+	optional(): Property<TypeName, JavaScriptType | null> {
+		return this.setOptions({ isOptional: true }) as Property<
+			TypeName,
+			JavaScriptType | null
+		>;
+	}
+
 	toString(): string {
 		const name = this.name ?? "unnamed";
-		return `${this._type}("${name}")`;
+		let str = `${this._type}("${name}")`;
+		if (this.options.isOptional) str += ".optional()";
+		if (this.options.isUnique) str += ".unique()";
+		if (this.options.isIdentifier) str += ".identifier()";
+		if (this.options.references) str += ".references()";
+		if (this.options.defaultValue !== undefined) str += ".default()";
+		return str;
 	}
 
 	toTypeScriptType(): string {
@@ -59,8 +72,15 @@ class Property<TypeName extends string, JavaScriptType = primitive> {
 			case "boolean":
 				typeStr = "boolean";
 				break;
+			case "datetime":
+				typeStr = "Date";
+				break;
 			default:
 				typeStr = "unknown";
+		}
+
+		if (this.options.isOptional) {
+			typeStr += " | null";
 		}
 
 		return typeStr;
@@ -74,7 +94,7 @@ class Property<TypeName extends string, JavaScriptType = primitive> {
 	}
 }
 
-type PropertyOptions<_JavaScriptType = unknown> = {
+type PropertyOptions = {
 	name?: string;
 };
 

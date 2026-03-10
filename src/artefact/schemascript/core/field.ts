@@ -1,3 +1,4 @@
+import type { SQL } from "@/data/proxies/sqlite";
 import * as Primitive from "./primitive";
 import type { PropertyBuilder } from "./property";
 
@@ -6,6 +7,7 @@ const realField = () => Primitive.real.init();
 const textField = () => Primitive.text.init();
 const blobField = () => Primitive.blob.init();
 const booleanField = () => Primitive.boolean.init();
+const datetimeField = () => Primitive.datetime.init();
 
 const Field = (): FieldBuilder => ({
 	integer: integerField,
@@ -13,6 +15,7 @@ const Field = (): FieldBuilder => ({
 	text: textField,
 	blob: blobField,
 	boolean: booleanField,
+	datetime: datetimeField,
 });
 
 const field = Field();
@@ -23,6 +26,7 @@ interface FieldBuilder {
 	text: PropertyBuilder<"text", string>;
 	blob: PropertyBuilder<"blob", Uint8Array>;
 	boolean: PropertyBuilder<"boolean", boolean>;
+	datetime: PropertyBuilder<"datetime", Date | bigint | string | SQL>;
 }
 
 export { field, Field, type FieldBuilder };

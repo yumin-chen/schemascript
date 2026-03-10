@@ -26,4 +26,9 @@ describe("field factory", () => {
 		const prop = field.boolean();
 		expect(prop.type).toBe("boolean");
 	});
+
+	test("datetime() should return a datetime property", () => {
+		const prop = field.datetime();
+		expect(prop.type).toBe("datetime");
+	});
 });

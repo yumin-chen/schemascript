@@ -20,12 +20,12 @@ const artefact: SchemaBuilder = (prop) => ({
 	/**
 	 * The last modification timestamp of the artefact.
 	 */
-	modified_at: prop.integer(),
+	modified_at: prop.datetime(),
 
 	/**
 	 * The creation timestamp of the artefact.
 	 */
-	created_at: prop.integer(),
+	created_at: prop.datetime(),
 });
 
 const artefactSchema = Schema("Artefact", artefact);

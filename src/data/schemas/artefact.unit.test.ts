@@ -11,8 +11,8 @@ describe("Artefact Schema", () => {
 			   text("pathname"),
 			   integer("mode"),
 			   text("digest"),
-			   integer("modified_at"),
-			   integer("created_at")
+			   datetime("modified_at"),
+			   datetime("created_at")
 			}`;
 		expect(schemaString).toBe(schemaExpected);
 	});
