@@ -29,6 +29,7 @@ describe("Schema", () => {
 			score: prop.real(),
 			data: prop.blob(),
 			created_at: prop.datetime(),
+			metadata: prop.node(),
 		}));
 		const ts = User.toTypeScriptInterface();
 		expect(ts).toContain("interface User {");
@@ -37,6 +38,7 @@ describe("Schema", () => {
 		expect(ts).toContain("score: number;");
 		expect(ts).toContain("data: Uint8Array;");
 		expect(ts).toContain("created_at: Date;");
+		expect(ts).toContain("metadata: object;");
 	});
 
 	test("toJSON() should return serializable object", () => {

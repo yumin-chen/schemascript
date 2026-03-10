@@ -1,7 +1,15 @@
 import type { SQL } from "@/data/proxies/sqlite";
 import { Property } from "./property";
 
-type primitive = bigint | number | string | Uint8Array | boolean | Date | SQL;
+type primitive =
+	| bigint
+	| number
+	| string
+	| Uint8Array
+	| boolean
+	| Date
+	| SQL
+	| object;
 
 const integer = new Property<"integer", bigint>("integer");
 
@@ -17,4 +25,6 @@ const datetime = new Property<"datetime", Date | bigint | string | SQL>(
 	"datetime",
 );
 
-export { type primitive, integer, real, text, blob, boolean, datetime };
+const node = new Property<"node", object>("node");
+
+export { type primitive, integer, real, text, blob, boolean, datetime, node };

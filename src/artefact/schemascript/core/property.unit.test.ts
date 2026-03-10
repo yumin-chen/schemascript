@@ -31,6 +31,9 @@ describe("Property", () => {
 		expect(new Property("datetime").finalise("created_at").toString()).toBe(
 			'datetime("created_at")',
 		);
+		expect(new Property("node").finalise("metadata").toString()).toBe(
+			'node("metadata")',
+		);
 	});
 
 	test("modifiers should update options", () => {
@@ -49,6 +52,7 @@ describe("Property", () => {
 		expect(new Property("blob").toTypeScriptType()).toBe("Uint8Array");
 		expect(new Property("boolean").toTypeScriptType()).toBe("boolean");
 		expect(new Property("datetime").toTypeScriptType()).toBe("Date");
+		expect(new Property("node").toTypeScriptType()).toBe("object");
 
 		expect(new Property("text").optional().toTypeScriptType()).toBe(
 			"string | null",

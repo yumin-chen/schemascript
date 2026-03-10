@@ -33,6 +33,9 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 			case "datetime":
 				builder = integer(columnName, { mode: "timestamp" });
 				break;
+			case "node":
+				builder = blob(columnName, { mode: "json" }).$type<object>();
+				break;
 			default:
 				throw new Error(`Unsupported type: ${prop.type}`);
 		}

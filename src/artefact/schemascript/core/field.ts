@@ -8,6 +8,7 @@ const textField = () => Primitive.text.init();
 const blobField = () => Primitive.blob.init();
 const booleanField = () => Primitive.boolean.init();
 const datetimeField = () => Primitive.datetime.init();
+const nodeField = () => Primitive.node.init();
 
 const Field = (): FieldBuilder => ({
 	integer: integerField,
@@ -16,6 +17,7 @@ const Field = (): FieldBuilder => ({
 	blob: blobField,
 	boolean: booleanField,
 	datetime: datetimeField,
+	node: nodeField,
 });
 
 const field = Field();
@@ -27,6 +29,7 @@ interface FieldBuilder {
 	blob: PropertyBuilder<"blob", Uint8Array>;
 	boolean: PropertyBuilder<"boolean", boolean>;
 	datetime: PropertyBuilder<"datetime", Date | bigint | string | SQL>;
+	node: PropertyBuilder<"node", object>;
 }
 
 export { field, Field, type FieldBuilder };

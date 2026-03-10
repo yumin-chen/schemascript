@@ -31,4 +31,9 @@ describe("field factory", () => {
 		const prop = field.datetime();
 		expect(prop.type).toBe("datetime");
 	});
+
+	test("node() should return a node property", () => {
+		const prop = field.node();
+		expect(prop.type).toBe("node");
+	});
 });

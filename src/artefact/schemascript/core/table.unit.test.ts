@@ -10,6 +10,7 @@ describe("Table", () => {
 			buf: prop.blob(),
 			bool: prop.boolean(),
 			time: prop.datetime(),
+			obj: prop.node(),
 		}));
 
 		expect(MyTable).toBeDefined();
@@ -25,6 +26,7 @@ describe("Table", () => {
 			"buf",
 			"bool",
 			"time",
+			"obj",
 		]);
 	});
 

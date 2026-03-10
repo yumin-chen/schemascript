@@ -75,6 +75,9 @@ class Property<TypeName extends string, JavaScriptType = primitive> {
 			case "datetime":
 				typeStr = "Date";
 				break;
+			case "node":
+				typeStr = "object";
+				break;
 			default:
 				typeStr = "unknown";
 		}
