@@ -10,7 +10,15 @@ const artefact: SchemaBuilder = (prop) => ({
 	/**
 	 * The mode type of the artefact.
 	 */
-	mode: prop.integer(),
+	mode: prop.enum({
+		options: {
+			blob: 100644,
+			executable: 100755,
+			symlink: 120000,
+			directory: 40000,
+			submodule: 160000,
+		},
+	}),
 
 	/**
 	 * The cryptographic hash digest of the artefact content.

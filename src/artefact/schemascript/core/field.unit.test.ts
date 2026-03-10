@@ -36,4 +36,9 @@ describe("field factory", () => {
 		const prop = field.node();
 		expect(prop.type).toBe("node");
 	});
+
+	test("enum() should return an enum property", () => {
+		const prop = field.enum({ options: ["A", "B"] });
+		expect(prop.type).toBe("enum");
+	});
 });

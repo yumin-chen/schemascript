@@ -36,6 +36,22 @@ describe("Property", () => {
 		);
 	});
 
+	test("toString() for enum types with array options", () => {
+		const prop = new Property("enum")
+			.enumOptions({ options: ["admin", "user"] })
+			.finalise("role");
+		expect(prop.toString()).toContain('enum("role"');
+		expect(prop.toString()).toContain('["admin", "user"]');
+	});
+
+	test("toString() for enum types with object options", () => {
+		const prop = new Property("enum")
+			.enumOptions({ options: { ACTIVE: 1, INACTIVE: 0 } })
+			.finalise("status");
+		expect(prop.toString()).toContain('enum("status"');
+		expect(prop.toString()).toContain("ACTIVE: 1");
+	});
+
 	test("modifiers should update options", () => {
 		const prop = new Property("text");
 		expect(prop.optional().getOptions().isOptional).toBe(true);
@@ -53,6 +69,14 @@ describe("Property", () => {
 		expect(new Property("boolean").toTypeScriptType()).toBe("boolean");
 		expect(new Property("datetime").toTypeScriptType()).toBe("Date");
 		expect(new Property("node").toTypeScriptType()).toBe("object");
+
+		const enumProp = new Property("enum").enumOptions({ options: ["A", "B"] });
+		expect(enumProp.toTypeScriptType()).toBe('"A" | "B"');
+
+		const enumObjProp = new Property("enum").enumOptions({
+			options: { X: 1, Y: 2 },
+		});
+		expect(enumObjProp.toTypeScriptType()).toBe('"X" | "Y"');
 
 		expect(new Property("text").optional().toTypeScriptType()).toBe(
 			"string | null",
