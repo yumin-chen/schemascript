@@ -1,5 +1,12 @@
 import type { primitive as DrizzlePrimitive } from "@/data/proxies/sqlite";
-import { blob, integer, real, sqliteTable, text } from "@/data/proxies/sqlite";
+import {
+	blob,
+	customType,
+	integer,
+	real,
+	sqliteTable,
+	text,
+} from "@/data/proxies/sqlite";
 import { field } from "./field";
 import type { SchemaBuilder } from "./schema";
 
@@ -36,6 +43,49 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 			case "node":
 				builder = blob(columnName, { mode: "json" }).$type<object>();
 				break;
+			case "enum": {
+				const config = (prop as any).enumConfigs as
+					| { options: string[] | Record<string, number> }
+					| undefined;
+
+				if (config?.options) {
+					let mapping: Record<string, number>;
+					const reverseMapping: Record<number, string> = {};
+
+					if (Array.isArray(config.options)) {
+						const options = config.options;
+						mapping = {};
+						for (let i = 0; i < options.length; i++) {
+							mapping[options[i]] = i;
+							reverseMapping[i] = options[i];
+						}
+					} else {
+						mapping = config.options;
+						for (const [k, v] of Object.entries(mapping)) {
+							reverseMapping[v] = k;
+						}
+					}
+
+					const EnumType = customType<{
+						data: string;
+						driverData: number;
+					}>({
+						dataType() {
+							return "integer";
+						},
+						fromDriver(value: number) {
+							return reverseMapping[value];
+						},
+						toDriver(value: string) {
+							return mapping[value];
+						},
+					});
+					builder = EnumType(columnName);
+				} else {
+					builder = integer(columnName);
+				}
+				break;
+			}
 			default:
 				throw new Error(`Unsupported type: ${prop.type}`);
 		}

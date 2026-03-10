@@ -27,4 +27,20 @@ const datetime = new Property<"datetime", Date | bigint | string | SQL>(
 
 const node = new Property<"node", object>("node");
 
-export { type primitive, integer, real, text, blob, boolean, datetime, node };
+const enumeration = new Property<
+	"enum",
+	string | number | bigint,
+	{ options: string[] | Record<string, number> }
+>("enum");
+
+export {
+	type primitive,
+	integer,
+	real,
+	text,
+	blob,
+	boolean,
+	datetime,
+	node,
+	enumeration as enum,
+};

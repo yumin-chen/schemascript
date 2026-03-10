@@ -75,6 +75,38 @@ describe("Table", () => {
 		expect(MyTable).toBeDefined();
 	});
 
+	test("should handle enums with mapping", () => {
+		const MyTable = Table("my_table", (prop) => ({
+			status: prop.enum({ options: ["A", "B"] }),
+		}));
+
+		const columns = (
+			MyTable as unknown as { [key: symbol]: Record<string, unknown> }
+		)[Symbol.for("drizzle:Columns")];
+		expect(columns.status).toBeDefined();
+	});
+
+	test("should handle enums with object options", () => {
+		const MyTable = Table("my_table", (prop) => ({
+			status: prop.enum({ options: { ACTIVE: 1, INACTIVE: 0 } }),
+		}));
+
+		const columns = (
+			MyTable as unknown as { [key: symbol]: Record<string, unknown> }
+		)[Symbol.for("drizzle:Columns")];
+		expect(columns.status).toBeDefined();
+	});
+
+	test("should fallback to integer for enums without options", () => {
+		const MyTable = Table("my_table", (prop) => ({
+			status: prop.enum({} as any),
+		}));
+		const columns = (
+			MyTable as unknown as { [key: symbol]: Record<string, unknown> }
+		)[Symbol.for("drizzle:Columns")];
+		expect(columns.status).toBeDefined();
+	});
+
 	test("should throw error for unsupported type", () => {
 		expect(() => {
 			Table("error", () => ({
