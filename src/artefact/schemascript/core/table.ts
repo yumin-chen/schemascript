@@ -101,6 +101,12 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 			builder = builder.unique() as typeof builder;
 		}
 
+		if (prop.isIdentifier) {
+			builder = builder.primaryKey(
+				prop.identifierConfigs as { autoIncrement?: boolean },
+			) as typeof builder;
+		}
+
 		sqliteColumns[key] = builder as unknown as DrizzlePrimitive;
 	}
 
