@@ -107,7 +107,12 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 			) as typeof builder;
 		}
 
-		const refOptions = prop.getOptions().references;
+		const options = prop.getOptions();
+		if (options.default !== undefined) {
+			builder = builder.default(options.default) as typeof builder;
+		}
+
+		const refOptions = options.references;
 		if (refOptions) {
 			builder = builder.references(refOptions.ref, {
 				onDelete: refOptions.onDelete,

@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import type { AnySQLiteColumn } from "@/data/proxies/sqlite";
+import { sql } from "@/data/proxies/sqlite";
 import { Property } from "./property";
 
 describe("Property", () => {
@@ -55,10 +57,29 @@ describe("Property", () => {
 		);
 
 		const refProp = new Property("integer")
-			.references(() => ({}) as any, { onDelete: "cascade" })
+			.references(() => ({}) as unknown as AnySQLiteColumn, {
+				onDelete: "cascade",
+			})
 			.finalise("user_id");
 		expect(refProp.toString()).toBe(
 			'integer("user_id").references(() => ..., { onDelete: "cascade" })',
+		);
+
+		const defaultStrProp = new Property("text")
+			.default("hello")
+			.finalise("greeting");
+		expect(defaultStrProp.toString()).toBe('text("greeting").default("hello")');
+
+		const defaultNumProp = new Property("integer")
+			.default(42)
+			.finalise("answer");
+		expect(defaultNumProp.toString()).toBe('integer("answer").default(42)');
+
+		const defaultSqlProp = new Property("datetime")
+			.default(sql`CURRENT_TIMESTAMP`)
+			.finalise("created_at");
+		expect(defaultSqlProp.toString()).toBe(
+			'datetime("created_at").default(sql`...`)',
 		);
 	});
 
@@ -92,7 +113,7 @@ describe("Property", () => {
 	});
 
 	test("references() should update options", () => {
-		const dummyRef = () => ({}) as any;
+		const dummyRef = () => ({}) as unknown as AnySQLiteColumn;
 		const prop = new Property("integer").references(dummyRef, {
 			onDelete: "cascade",
 		});
@@ -100,6 +121,11 @@ describe("Property", () => {
 		expect(options.references).toBeDefined();
 		expect(options.references?.ref).toBe(dummyRef);
 		expect(options.references?.onDelete).toBe("cascade");
+	});
+
+	test("default() should update options", () => {
+		const prop = new Property("text").default("value");
+		expect(prop.getOptions().default).toBe("value");
 	});
 
 	test("toTypeScriptType() mapping", () => {
