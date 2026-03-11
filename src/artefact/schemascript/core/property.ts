@@ -1,5 +1,19 @@
+import type { AnySQLiteColumn } from "@/data/proxies/sqlite";
 import { deepFreeze } from "@/utils/freeze";
 import type { primitive } from "./primitive";
+
+export type ReferenceActions =
+	| "cascade"
+	| "restrict"
+	| "no action"
+	| "set null"
+	| "set default";
+
+export type ReferenceOptions = {
+	ref: () => AnySQLiteColumn;
+	onDelete?: ReferenceActions;
+	onUpdate?: ReferenceActions;
+};
 
 class Property<
 	TypeName extends string,
@@ -99,11 +113,6 @@ class Property<
 		});
 	}
 
-	default(
-		value: JavaScriptType | SQL,
-	): Property<TypeName, JavaScriptType, EnumOptionType> {
-		return this.setOptions({ default: value });
-	}
 
 	get type(): TypeName {
 		return this._type;
@@ -137,16 +146,44 @@ class Property<
 		return !!this.options.identifierOptions?.autoIncrement;
 	}
 
+	get reference():
+		| {
+				ref: () => AnySQLiteColumn;
+				actions?: { onDelete?: ReferenceActions; onUpdate?: ReferenceActions };
+		  }
+		| undefined {
+		const r = this.options.references;
+		if (!r) return undefined;
+
+		const hasActions = r.onDelete !== undefined || r.onUpdate !== undefined;
+		return {
+			ref: r.ref,
+			actions: hasActions
+				? { onDelete: r.onDelete, onUpdate: r.onUpdate }
+				: undefined,
+		};
+	}
+
 	toString(): string {
 		const name = this.name ?? "unnamed";
 		const unique = this.isUnique ? ".unique()" : "";
-		const optional = this.isOptional ? ".optional()" : "";
-		let identifier = "";
-		if (this.isIdentifier) {
-			identifier = ".identifier()";
-			if (this.identifierConfigs?.autoIncrement) {
-				identifier = ".identifier({ autoIncrement: true })";
-			}
+		const array = this.isArray ? ".array()" : "";
+		const identifier = this.isIdentifier
+			? this.isAutoIncrement
+				? ".identifier({ autoIncrement: true })"
+				: ".identifier()"
+			: "";
+		let references = "";
+		if (this.reference) {
+			const actions = this.reference.actions;
+			const actionParts: string[] = [];
+			if (actions?.onUpdate)
+				actionParts.push(`onUpdate: "${actions.onUpdate}"`);
+			if (actions?.onDelete)
+				actionParts.push(`onDelete: "${actions.onDelete}"`);
+			const actionStr =
+				actionParts.length > 0 ? `, { ${actionParts.join(", ")} }` : "";
+			references = `.references(() => ...${actionStr})`;
 		}
 
 		if (this._type === "enum") {
@@ -168,7 +205,7 @@ class Property<
 			}
 		}
 
-		return `${this._type}("${name}")${optional}${unique}${identifier}`;
+		return `${this._type}("${name}")${optional}${unique}${identifier}${references}`;
 	}
 
 	toTypeScriptType(): string {
@@ -239,6 +276,7 @@ type PropertyOptions<_JavaScriptType = unknown, EnumOptionType = unknown> = {
 	isOptional?: boolean;
 	isIdentifier?: boolean;
 	identifierOptions?: { autoIncrement?: boolean };
+	references?: ReferenceOptions;
 };
 
 type PropertyBuilder<
