@@ -14,4 +14,3 @@ const PostSchema = Schema("Post", Post);
 const PostTable = Table("posts", Post);
 
 export { Post, PostSchema, PostTable };
-
