@@ -43,6 +43,16 @@ describe("Property", () => {
 
 		const optionalProp = new Property("integer").optional().finalise("age");
 		expect(optionalProp.toString()).toBe('integer("age").optional()');
+
+		const identifierProp = new Property("text").identifier().finalise("id");
+		expect(identifierProp.toString()).toBe('text("id").identifier()');
+
+		const aiProp = new Property("integer")
+			.identifier({ autoIncrement: true })
+			.finalise("id");
+		expect(aiProp.toString()).toBe(
+			'integer("id").identifier({ autoIncrement: true })',
+		);
 	});
 
 	test("toString() for enum types with array options", () => {
@@ -65,6 +75,13 @@ describe("Property", () => {
 		const prop = new Property("text");
 		expect(prop.optional().getOptions().isOptional).toBe(true);
 		expect(prop.unique().getOptions().isUnique).toBe(true);
+		expect(prop.identifier().getOptions().isIdentifier).toBe(true);
+	});
+
+	test("identifier() with options", () => {
+		const prop = new Property("integer").identifier({ autoIncrement: true });
+		expect(prop.isIdentifier).toBe(true);
+		expect(prop.identifierConfigs?.autoIncrement).toBe(true);
 	});
 
 	test("toTypeScriptType() mapping", () => {
