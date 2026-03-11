@@ -15,7 +15,7 @@
 
 ## Core API
 
-### Schema Definition & Table Generation
+### Schema Definition & Table Creation
 
 Schemas are defined using the `Schema` function, which creates a type-safe schema definition that can be used for type generation and validation:
 
