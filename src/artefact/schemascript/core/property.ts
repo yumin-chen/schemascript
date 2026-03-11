@@ -14,6 +14,7 @@ class Property<
 		> = {
 			isUnique: false,
 			isOptional: false,
+			isIdentifier: false,
 		},
 	) {}
 
@@ -58,6 +59,14 @@ class Property<
 		return this.setOptions({ isOptional: true });
 	}
 
+	identifier(options?: {
+		autoIncrement?: boolean;
+	}): Property<TypeName, JavaScriptType, EnumOptionType> {
+		if (this.isIdentifier && this.options.identifierOptions === options)
+			return this;
+		return this.setOptions({ isIdentifier: true, identifierOptions: options });
+	}
+
 	get type(): TypeName {
 		return this._type;
 	}
@@ -78,10 +87,25 @@ class Property<
 		return !!this.options.isUnique;
 	}
 
+	get isIdentifier(): boolean {
+		return !!this.options.isIdentifier;
+	}
+
+	get identifierConfigs(): { autoIncrement?: boolean } | undefined {
+		return this.options.identifierOptions;
+	}
+
 	toString(): string {
 		const name = this.name ?? "unnamed";
 		const unique = this.isUnique ? ".unique()" : "";
 		const optional = this.isOptional ? ".optional()" : "";
+		let identifier = "";
+		if (this.isIdentifier) {
+			identifier = ".identifier()";
+			if (this.identifierConfigs?.autoIncrement) {
+				identifier = ".identifier({ autoIncrement: true })";
+			}
+		}
 
 		if (this._type === "enum") {
 			const config = this.enumConfigs as
@@ -91,18 +115,18 @@ class Property<
 			if (options) {
 				if (Array.isArray(options)) {
 					const values = options.map((v) => `"${v}"`).join(", ");
-					return `enum("${name}",\n    {   options:\n\t\t\t[${values}]\n\t}\n   )${optional}${unique}`;
+					return `enum("${name}",\n    {   options:\n\t\t\t[${values}]\n\t}\n   )${optional}${unique}${identifier}`;
 				}
 				if (typeof options === "object") {
 					const values = Object.entries(options)
 						.map(([k, v]) => `\t\t\t\t${k}: ${v},`)
 						.join("\n");
-					return `enum("${name}",\n    {   options:\n\t\t\t{\n${values}\n\t\t\t}\n\t\t}\n   )${optional}${unique}`;
+					return `enum("${name}",\n    {   options:\n\t\t\t{\n${values}\n\t\t\t}\n\t\t}\n   )${optional}${unique}${identifier}`;
 				}
 			}
 		}
 
-		return `${this._type}("${name}")${optional}${unique}`;
+		return `${this._type}("${name}")${optional}${unique}${identifier}`;
 	}
 
 	toTypeScriptType(): string {
@@ -171,6 +195,8 @@ type PropertyOptions<_JavaScriptType = unknown, EnumOptionType = unknown> = {
 	enumOptions?: EnumOptionType;
 	isUnique?: boolean;
 	isOptional?: boolean;
+	isIdentifier?: boolean;
+	identifierOptions?: { autoIncrement?: boolean };
 };
 
 type PropertyBuilder<
