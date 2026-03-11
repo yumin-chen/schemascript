@@ -1,15 +1,16 @@
-import type { AnySQLiteColumn } from "@/data/proxies/sqlite";
+import { SQL } from "drizzle-orm";
+import type { AnySQLiteColumn, SQL as SQLType } from "@/data/proxies/sqlite";
 import { deepFreeze } from "@/utils/freeze";
 import type { primitive } from "./primitive";
 
-export type ReferenceActions =
+type ReferenceActions =
 	| "cascade"
 	| "restrict"
 	| "no action"
 	| "set null"
 	| "set default";
 
-export type ReferenceOptions = {
+type ReferenceOptions = {
 	ref: () => AnySQLiteColumn;
 	onDelete?: ReferenceActions;
 	onUpdate?: ReferenceActions;
@@ -81,7 +82,7 @@ class Property<
 	default(
 		value: JavaScriptType | SQL,
 	): Property<TypeName, JavaScriptType, EnumOptionType> {
-		return this.setOptions({ defaultValue: value });
+		return this.setOptions({ default: value });
 	}
 
 	identifier(
@@ -113,7 +114,6 @@ class Property<
 		});
 	}
 
-
 	get type(): TypeName {
 		return this._type;
 	}
@@ -142,6 +142,14 @@ class Property<
 		return this.options.identifierOptions;
 	}
 
+	get hasDefault(): boolean {
+		return this.options.default !== undefined;
+	}
+
+	get defaultValue(): JavaScriptType | SQLType | undefined {
+		return this.options.default;
+	}
+
 	get isAutoIncrement(): boolean {
 		return !!this.options.identifierOptions?.autoIncrement;
 	}
@@ -166,6 +174,7 @@ class Property<
 
 	toString(): string {
 		const name = this.name ?? "unnamed";
+		const optional = this.isOptional ? ".optional()" : "";
 		const unique = this.isUnique ? ".unique()" : "";
 		const array = this.isArray ? ".array()" : "";
 		const identifier = this.isIdentifier
@@ -186,6 +195,21 @@ class Property<
 			references = `.references(() => ...${actionStr})`;
 		}
 
+		let defaultVal = "";
+		if (this.options.default !== undefined) {
+			const val = this.options.default;
+			if (typeof val === "string") {
+				defaultVal = `.default("${val}")`;
+			} else if (
+				val instanceof SQL ||
+				(val && typeof val === "object" && "queryChunks" in val)
+			) {
+				defaultVal = ".default(sql`...`)";
+			} else {
+				defaultVal = `.default(${val})`;
+			}
+		}
+
 		if (this._type === "enum") {
 			const config = this.enumConfigs as
 				| { options?: string[] | Record<string, number> }
@@ -194,18 +218,18 @@ class Property<
 			if (options) {
 				if (Array.isArray(options)) {
 					const values = options.map((v) => `"${v}"`).join(", ");
-					return `enum("${name}",\n    {   options:\n\t\t\t[${values}]\n\t}\n   )${optional}${unique}${identifier}`;
+					return `enum("${name}",\n    {   options:\n\t\t\t[${values}]\n\t}\n   )${optional}${unique}${identifier}${defaultValue}`;
 				}
 				if (typeof options === "object") {
 					const values = Object.entries(options)
 						.map(([k, v]) => `\t\t\t\t${k}: ${v},`)
 						.join("\n");
-					return `enum("${name}",\n    {   options:\n\t\t\t{\n${values}\n\t\t\t}\n\t\t}\n   )${optional}${unique}${identifier}`;
+					return `enum("${name}",\n    {   options:\n\t\t\t{\n${values}\n\t\t\t}\n\t\t}\n   )${optional}${unique}${identifier}${defaultValue}`;
 				}
 			}
 		}
 
-		return `${this._type}("${name}")${optional}${unique}${identifier}${references}`;
+		return `${this._type}("${name}")${optional}${unique}${identifier}${defaultValue}${references}`;
 	}
 
 	toTypeScriptType(): string {
@@ -269,7 +293,7 @@ class Property<
 	}
 }
 
-type PropertyOptions<_JavaScriptType = unknown, EnumOptionType = unknown> = {
+type PropertyOptions<JavaScriptType = unknown, EnumOptionType = unknown> = {
 	name?: string;
 	enumOptions?: EnumOptionType;
 	isUnique?: boolean;
@@ -277,6 +301,7 @@ type PropertyOptions<_JavaScriptType = unknown, EnumOptionType = unknown> = {
 	isIdentifier?: boolean;
 	identifierOptions?: { autoIncrement?: boolean };
 	references?: ReferenceOptions;
+	default?: JavaScriptType | SQLType;
 };
 
 type PropertyBuilder<
@@ -287,4 +312,10 @@ type PropertyBuilder<
 	config?: EnumOptionType,
 ) => Property<TypeName, JavaScriptType, EnumOptionType>;
 
-export { Property, type PropertyBuilder, type PropertyOptions };
+export {
+	Property,
+	type PropertyOptions,
+	type PropertyBuilder,
+	type ReferenceOptions,
+	type ReferenceActions,
+};

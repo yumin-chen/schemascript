@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { sql } from "@/data/proxies/sqlite";
 import { Table } from "./table";
 
 describe("Table Integration", () => {

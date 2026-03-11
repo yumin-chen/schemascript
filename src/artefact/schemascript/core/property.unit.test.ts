@@ -1,4 +1,6 @@
 import { describe, expect, test } from "bun:test";
+import type { AnySQLiteColumn } from "@/data/proxies/sqlite";
+import { sql } from "@/data/proxies/sqlite";
 import { Property } from "./property";
 
 describe("Property", () => {
@@ -34,15 +36,72 @@ describe("Property", () => {
 		expect(Object.isFrozen(finalised)).toBe(true);
 	});
 
-	test("toString() for standard types", () => {
-		const prop = new Property("text").finalise("username");
-		expect(prop.toString()).toBe('text("username")');
+	test("array should mark property as array", () => {
+		const prop = new Property("text");
+		const arrayProp = prop.array();
+		expect(arrayProp.isArray).toBe(true);
+		expect(prop.isArray).toBe(false); // Immutability
+	});
 
-		const uniqueProp = new Property("text").unique().finalise("email");
-		expect(uniqueProp.toString()).toBe('text("email").unique()');
+	const uniqueProp = new Property("text").unique().finalise("email");
+	expect(uniqueProp.toString()).toBe('text("email").unique()');
+	test("array should throw if property is identifier", () => {
+		const prop = new Property("integer").identifier();
+		expect(() => prop.array()).toThrow("Identifiers cannot be arrays.");
+	});
+
+	test("identifier should mark property as primary key", () => {
+		const prop = new Property("text");
+		const idProp = prop.identifier();
+		expect(idProp.isIdentifier).toBe(true);
+		expect(prop.isIdentifier).toBe(false);
+	});
+
+	test("identifier with autoIncrement for integers", () => {
+		const prop = new Property("integer");
+		const idProp = prop.identifier({ autoIncrement: true });
+		expect(idProp.isIdentifier).toBe(true);
+		expect(idProp.isAutoIncrement).toBe(true);
+	});
+
+	test("identifier should throw for enums", () => {
+		const prop = new Property("enum");
+		expect(() =>
+			(prop as unknown as { identifier: () => unknown }).identifier(),
+		).toThrow("Enums cannot be identifiers.");
+	});
+
+	test("identifier should throw for arrays", () => {
+		const prop = new Property("text").array();
+		expect(() =>
+			(prop as unknown as { identifier: () => unknown }).identifier(),
+		).toThrow("Arrays cannot be identifiers.");
+	});
+
+	test("references should store reference metadata", () => {
+		const mockRef = () => ({}) as unknown;
+		const prop = new Property("integer").references(mockRef, {
+			onDelete: "cascade",
+		});
+		expect(prop.reference?.ref).toBe(mockRef);
+		expect(prop.reference?.actions?.onDelete).toBe("cascade");
+	});
+
+	test("default should store default value", () => {
+		const prop = new Property("integer").default(42n);
+		expect(prop.hasDefault).toBe(true);
+		expect(prop.defaultValue).toBe(42n);
+	});
+
+	test("toString for primitive types", () => {
+		const prop = new Property("text").finalise("id");
+		expect(prop.toString()).toBe('text("id")');
 
 		const optionalProp = new Property("integer").optional().finalise("age");
 		expect(optionalProp.toString()).toBe('integer("age").optional()');
+
+		const uniqueProp = new Property("text").unique().finalise("email");
+		expect(uniqueProp.toString()).toBe('text("email").unique()');
 
 		const identifierProp = new Property("text").identifier().finalise("id");
 		expect(identifierProp.toString()).toBe('text("id").identifier()');
@@ -55,10 +114,29 @@ describe("Property", () => {
 		);
 
 		const refProp = new Property("integer")
-			.references(() => ({}) as any, { onDelete: "cascade" })
+			.references(() => ({}) as unknown as AnySQLiteColumn, {
+				onDelete: "cascade",
+			})
 			.finalise("user_id");
 		expect(refProp.toString()).toBe(
 			'integer("user_id").references(() => ..., { onDelete: "cascade" })',
+		);
+
+		const defaultStrProp = new Property("text")
+			.default("hello")
+			.finalise("greeting");
+		expect(defaultStrProp.toString()).toBe('text("greeting").default("hello")');
+
+		const defaultNumProp = new Property("integer")
+			.default(42)
+			.finalise("answer");
+		expect(defaultNumProp.toString()).toBe('integer("answer").default(42)');
+
+		const defaultSqlProp = new Property("datetime")
+			.default(sql`CURRENT_TIMESTAMP`)
+			.finalise("created_at");
+		expect(defaultSqlProp.toString()).toBe(
+			'datetime("created_at").default(sql`...`)',
 		);
 	});
 
@@ -92,7 +170,7 @@ describe("Property", () => {
 	});
 
 	test("references() should update options", () => {
-		const dummyRef = () => ({}) as any;
+		const dummyRef = () => ({}) as unknown as AnySQLiteColumn;
 		const prop = new Property("integer").references(dummyRef, {
 			onDelete: "cascade",
 		});
@@ -100,6 +178,11 @@ describe("Property", () => {
 		expect(options.references).toBeDefined();
 		expect(options.references?.ref).toBe(dummyRef);
 		expect(options.references?.onDelete).toBe("cascade");
+	});
+
+	test("default() should update options", () => {
+		const prop = new Property("text").default("value");
+		expect(prop.getOptions().default).toBe("value");
 	});
 
 	test("toTypeScriptType() mapping", () => {
