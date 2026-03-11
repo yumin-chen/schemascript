@@ -1,5 +1,5 @@
 import type { SchemaBuilder } from "@artefact/schemascript";
-import { Schema, Table } from "@artefact/schemascript";
+import { Schema, Table, value } from "@artefact/schemascript";
 
 const artefact: SchemaBuilder = (prop) => ({
 	/**
@@ -29,12 +29,12 @@ const artefact: SchemaBuilder = (prop) => ({
 	/**
 	 * The last modification timestamp of the artefact.
 	 */
-	modified_at: prop.datetime(),
+	modified_at: prop.datetime().default(value.now),
 
 	/**
 	 * The creation timestamp of the artefact.
 	 */
-	created_at: prop.datetime(),
+	created_at: prop.datetime().default(value.now),
 });
 
 const artefactSchema = Schema("Artefact", artefact);

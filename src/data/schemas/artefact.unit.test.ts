@@ -21,8 +21,8 @@ describe("Artefact Schema", () => {
 					}
 			   ),
 			   text("digest").unique(),
-			   datetime("modified_at"),
-			   datetime("created_at")
+			   datetime("modified_at").default(sql\`...\`),
+			   datetime("created_at").default(sql\`...\`)
 			}`;
 		expect(schemaString).toBe(schemaExpected);
 	});
