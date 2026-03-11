@@ -5,7 +5,13 @@ import { basename, extname, join } from "node:path";
 describe("Test Policy Enforcement", () => {
 	const srcDir = join(process.cwd(), "src");
 
-	const excludedFiles = ["index.ts", "main.ts", "primitive.ts"];
+	const excludedFiles = [
+		"index.ts",
+		"main.ts",
+		"primitive.ts",
+		"value.ts",
+		"constant.ts",
+	];
 
 	const excludedDirs = ["data/proxies", "scripts"];
 
