@@ -107,6 +107,14 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 			) as typeof builder;
 		}
 
+		const refOptions = prop.getOptions().references;
+		if (refOptions) {
+			builder = builder.references(refOptions.ref, {
+				onDelete: refOptions.onDelete,
+				onUpdate: refOptions.onUpdate,
+			}) as typeof builder;
+		}
+
 		sqliteColumns[key] = builder as unknown as DrizzlePrimitive;
 	}
 

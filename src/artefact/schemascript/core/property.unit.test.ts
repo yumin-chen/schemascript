@@ -53,6 +53,13 @@ describe("Property", () => {
 		expect(aiProp.toString()).toBe(
 			'integer("id").identifier({ autoIncrement: true })',
 		);
+
+		const refProp = new Property("integer")
+			.references(() => ({}) as any, { onDelete: "cascade" })
+			.finalise("user_id");
+		expect(refProp.toString()).toBe(
+			'integer("user_id").references(() => ..., { onDelete: "cascade" })',
+		);
 	});
 
 	test("toString() for enum types with array options", () => {
@@ -82,6 +89,17 @@ describe("Property", () => {
 		const prop = new Property("integer").identifier({ autoIncrement: true });
 		expect(prop.isIdentifier).toBe(true);
 		expect(prop.identifierConfigs?.autoIncrement).toBe(true);
+	});
+
+	test("references() should update options", () => {
+		const dummyRef = () => ({}) as any;
+		const prop = new Property("integer").references(dummyRef, {
+			onDelete: "cascade",
+		});
+		const options = prop.getOptions();
+		expect(options.references).toBeDefined();
+		expect(options.references?.ref).toBe(dummyRef);
+		expect(options.references?.onDelete).toBe("cascade");
 	});
 
 	test("toTypeScriptType() mapping", () => {
