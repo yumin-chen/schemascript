@@ -65,8 +65,17 @@ class Property<
 	}
 
 	array(): Property<TypeName, JavaScriptType[], EnumOptionType> {
-		if (this.isArray) return this as unknown as Property<TypeName, JavaScriptType[], EnumOptionType>;
-		return this.setOptions({ isArray: true }) as unknown as Property<TypeName, JavaScriptType[], EnumOptionType>;
+		if (this.isArray)
+			return this as unknown as Property<
+				TypeName,
+				JavaScriptType[],
+				EnumOptionType
+			>;
+		return this.setOptions({ isArray: true }) as unknown as Property<
+			TypeName,
+			JavaScriptType[],
+			EnumOptionType
+		>;
 	}
 
 	unique(): Property<TypeName, JavaScriptType, EnumOptionType> {

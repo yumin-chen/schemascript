@@ -441,6 +441,6 @@ export const testTable = sqliteTable("test_table_array", {
 	test("generated SQL should correctly reflect array columns as BLOB (JSON)", () => {
 		if (!sqlContent) return;
 
-		expect(sqlContent).toContain("`tags` blob");
+		expect(sqlContent).toContain("`tags` blob NOT NULL");
 	});
 });
