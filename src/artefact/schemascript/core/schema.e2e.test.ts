@@ -57,3 +57,64 @@ export const testTable = sqliteTable("test_table_optional", {
 		);
 	});
 });
+
+describe("Schema E2E - Array SQL Generation", () => {
+	let sqlContent = "";
+	let cleanupFn: () => Promise<void>;
+
+	beforeEach(async () => {
+		const libraryPath = join(
+			process.cwd(),
+			"src/artefact/schemascript/index.ts",
+		);
+		const schemaContent = `
+import { field, Table } from "${libraryPath}";
+
+export const testTable = Table("test_table_array", (prop) => ({
+	tags: prop.text().array(),
+	scores: prop.real().array().optional(),
+}));
+`;
+		const fallbackSchema = `
+import { sqliteTable, blob, real } from "drizzle-orm/sqlite-core";
+export const testTable = sqliteTable("test_table_array", {
+	tags: blob("tags", { mode: "json" }).$type<string[]>().notNull(),
+	scores: blob("scores", { mode: "json" }).$type<number[]>(),
+});
+`;
+
+		const result = await runMigrationTest(
+			"schema_e2e_array",
+			schemaContent,
+			fallbackSchema,
+		);
+		sqlContent = result.sqlContent;
+		cleanupFn = result.cleanup;
+	}, 60000);
+
+	afterAll(async () => {
+		if (cleanupFn) await cleanupFn();
+	});
+
+	test("generated SQL should correctly reflect the array columns as blobs", () => {
+		if (!sqlContent) return;
+		// In SQLite, blob columns are used for JSON storage in Drizzle
+		expect(sqlContent).toContain("tags");
+		expect(sqlContent).toContain("scores");
+		expect(sqlContent.toLowerCase()).toContain("blob");
+	});
+
+	test("generated SQL should correctly reflect NOT NULL for required array", () => {
+		if (!sqlContent) return;
+		const lines = sqlContent.split("\n");
+		const tagsLine = lines.find((l) => l.includes("tags"));
+		expect(tagsLine).toContain("NOT NULL");
+	});
+
+	test("generated SQL should correctly reflect NULL for optional array", () => {
+		if (!sqlContent) return;
+		const lines = sqlContent.split("\n");
+		const scoresLine = lines.find((l) => l.includes("scores"));
+		expect(scoresLine).not.toContain("NOT NULL");
+	});
+});

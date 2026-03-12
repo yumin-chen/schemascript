@@ -1,5 +1,4 @@
-import type { SQL } from "drizzle-orm";
-import { sql } from "drizzle-orm";
+import { SQL, sql } from "drizzle-orm";
 import {
 	type AnySQLiteColumn,
 	blob,
@@ -71,7 +70,7 @@ export {
 	sqliteTable,
 	text,
 	sql,
-	type SQL,
+	SQL,
 	customType,
 	type AnySQLiteColumn,
 };

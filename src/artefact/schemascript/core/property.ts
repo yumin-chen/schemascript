@@ -1,5 +1,4 @@
-import type { AnySQLiteColumn } from "@/data/proxies/sqlite";
-import { SQL } from "@/data/proxies/sqlite";
+import { type AnySQLiteColumn, SQL } from "@/data/proxies/sqlite";
 import { deepFreeze } from "@/utils/freeze";
 import type { primitive } from "./primitive";
 
@@ -47,6 +46,16 @@ class Property<
 		return this as Property<TypeName, T>;
 	}
 
+	optional(): Property<TypeName, JavaScriptType | null, EnumOptionType> {
+		if (this.isOptional)
+			return this as Property<TypeName, JavaScriptType | null, EnumOptionType>;
+		return this.setOptions({ isOptional: true }) as Property<
+			TypeName,
+			JavaScriptType | null,
+			EnumOptionType
+		>;
+	}
+
 	finalise<T extends JavaScriptType = JavaScriptType>(
 		name: string,
 	): Property<TypeName, T, EnumOptionType> {
@@ -81,12 +90,6 @@ class Property<
 		>;
 	}
 
-	default(
-		value: JavaScriptType | SQL,
-	): Property<TypeName, JavaScriptType, EnumOptionType> {
-		return this.setOptions({ default: value });
-	}
-
 	identifier(
 		this: Property<Exclude<TypeName, "enum">, JavaScriptType, EnumOptionType>,
 		config?: TypeName extends "integer" ? { autoIncrement: boolean } : never,
@@ -105,21 +108,6 @@ class Property<
 			isIdentifier: true,
 			identifierOptions: config,
 		}) as Property<TypeName, JavaScriptType, EnumOptionType>;
-	}
-
-	references(
-		ref: () => AnySQLiteColumn,
-		actions?: { onDelete?: ReferenceActions; onUpdate?: ReferenceActions },
-	): Property<TypeName, JavaScriptType, EnumOptionType> {
-		return this.setOptions({
-			references: { ref, ...actions },
-		});
-	}
-
-	default(
-		value: JavaScriptType | SQL,
-	): Property<TypeName, JavaScriptType, EnumOptionType> {
-		return this.setOptions({ default: value });
 	}
 
 	references(
@@ -173,6 +161,14 @@ class Property<
 		return !!this.options.identifierOptions?.autoIncrement;
 	}
 
+	get hasDefault(): boolean {
+		return this.options.default !== undefined;
+	}
+
+	get defaultValue(): JavaScriptType | SQL | undefined {
+		return this.options.default;
+	}
+
 	get reference():
 		| {
 				ref: () => AnySQLiteColumn;
@@ -195,23 +191,12 @@ class Property<
 		const name = this.name ?? "unnamed";
 		const unique = this.isUnique ? ".unique()" : "";
 		const array = this.isArray ? ".array()" : "";
+		const optional = this.isOptional ? ".optional()" : "";
 		const identifier = this.isIdentifier
 			? this.isAutoIncrement
 				? ".identifier({ autoIncrement: true })"
 				: ".identifier()"
 			: "";
-		let references = "";
-		if (this.reference) {
-			const actions = this.reference.actions;
-			const actionParts: string[] = [];
-			if (actions?.onUpdate)
-				actionParts.push(`onUpdate: "${actions.onUpdate}"`);
-			if (actions?.onDelete)
-				actionParts.push(`onDelete: "${actions.onDelete}"`);
-			const actionStr =
-				actionParts.length > 0 ? `, { ${actionParts.join(", ")} }` : "";
-			references = `.references(...${actionStr})`;
-		}
 
 		let references = "";
 		if (this.options.references) {
@@ -220,7 +205,7 @@ class Property<
 			if (onDelete) actions.push(`onDelete: "${onDelete}"`);
 			if (onUpdate) actions.push(`onUpdate: "${onUpdate}"`);
 			const actionsStr =
-				actionParts.length > 0 ? `, { ${actionParts.join(", ")} }` : "";
+				actions.length > 0 ? `, { ${actions.join(", ")} }` : "";
 			references = `.references(() => ...${actionsStr})`;
 		}
 
@@ -333,11 +318,12 @@ type PropertyOptions<JavaScriptType = unknown, EnumOptionType = unknown> = {
 	name?: string;
 	enumOptions?: EnumOptionType;
 	isUnique?: boolean;
+	isOptional?: boolean;
 	isArray?: boolean;
 	isIdentifier?: boolean;
 	identifierOptions?: { autoIncrement?: boolean };
 	references?: ReferenceOptions;
-	default?: JavaScriptTyp;
+	default?: JavaScriptType | SQL;
 };
 
 type PropertyBuilder<

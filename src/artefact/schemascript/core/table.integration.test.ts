@@ -110,3 +110,23 @@ describe("Default Modifier Integration", () => {
 		expect(columns.sql_def.default).toBeDefined();
 	});
 });
+
+describe("Array Modifier Integration", () => {
+	test("should correctly map array types to Drizzle JSON columns", () => {
+		const MyTable = Table("array_integration", (prop) => ({
+			tags: prop.text().array(),
+			scores: prop.real().array(),
+			flags: prop.boolean().array(),
+		}));
+
+		const columns = (
+			MyTable as unknown as {
+				[key: symbol]: Record<string, { columnType: string }>;
+			}
+		)[Symbol.for("drizzle:Columns")];
+
+		expect(columns.tags.columnType).toBe("SQLiteBlobJson");
+		expect(columns.scores.columnType).toBe("SQLiteBlobJson");
+		expect(columns.flags.columnType).toBe("SQLiteBlobJson");
+	});
+});
