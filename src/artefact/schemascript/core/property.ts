@@ -53,7 +53,12 @@ class Property<
 	}
 
 	optional(): Property<TypeName, JavaScriptType | null, EnumOptionType> {
-		if (this.isOptional) return this as any;
+		if (this.isOptional)
+			return this as unknown as Property<
+				TypeName,
+				JavaScriptType | null,
+				EnumOptionType
+			>;
 		return this.setOptions({ isOptional: true });
 	}
 
@@ -84,7 +89,12 @@ class Property<
 		this: Property<Exclude<TypeName, "enum">, JavaScriptType, EnumOptionType>,
 		config?: TypeName extends "integer" ? { autoIncrement: boolean } : never,
 	): Property<TypeName, JavaScriptType, EnumOptionType> {
-		if (this.isIdentifier) return this as any;
+		if (this.isIdentifier)
+			return this as unknown as Property<
+				TypeName,
+				JavaScriptType,
+				EnumOptionType
+			>;
 		if (this._type === "enum") {
 			throw new Error("Enums cannot be identifiers.");
 		}
@@ -96,7 +106,7 @@ class Property<
 		}
 		return this.setOptions({
 			isIdentifier: true,
-			autoIncrement: (config as any)?.autoIncrement,
+			autoIncrement: (config as { autoIncrement?: boolean })?.autoIncrement,
 		}) as Property<TypeName, JavaScriptType, EnumOptionType>;
 	}
 
