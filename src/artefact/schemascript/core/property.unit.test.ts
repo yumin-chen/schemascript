@@ -233,7 +233,7 @@ describe("makeBuilder", () => {
 	test("should support references modifier on the builder", () => {
 		const prop = new Property("integer");
 		const builder = makeBuilder(prop);
-		const mockRef = () => ({}) as any;
+		const mockRef = () => ({}) as unknown as never;
 
 		const refBuilder = builder.references(mockRef, { onDelete: "cascade" });
 		const finalProp = refBuilder();
