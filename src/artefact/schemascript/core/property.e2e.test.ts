@@ -1,15 +1,13 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import fs from "node:fs";
-import path from "node:path";
 import { runMigrationTest } from "../../../utils/testing/sql";
 
 describe("Modifiers E2E (SQL Generation)", () => {
-	const tempDir = path.join(process.cwd(), "temp-e2e-modifiers");
 	let generatedSql = "";
+	let cleanup: () => Promise<void>;
 
 	beforeEach(async () => {
 		const schemaContent = `
-import { field, Table } from "../src/artefact/schemascript";
+import { Table } from "@/artefact/schemascript";
 
 export const parent = Table("parent", (prop) => ({
 	id: prop.integer().identifier({ autoIncrement: true }),
@@ -24,13 +22,13 @@ export const testTable = Table("test_modifiers", (prop) => ({
 	tags: prop.text().array(),
 }));
 `;
-		generatedSql = await runMigrationTest(tempDir, schemaContent);
+		const result = await runMigrationTest("e2e-modifiers", schemaContent);
+		generatedSql = result.sqlContent;
+		cleanup = result.cleanup;
 	});
 
-	afterEach(() => {
-		if (fs.existsSync(tempDir)) {
-			fs.rmSync(tempDir, { recursive: true });
-		}
+	afterEach(async () => {
+		if (cleanup) await cleanup();
 	});
 
 	test("drizzle-kit generate should produce valid SQL", () => {

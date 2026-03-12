@@ -64,21 +64,17 @@ describe("Property", () => {
 	});
 
 	test("identifier should throw for enums", () => {
-		const prop = new Property("enum");
-		expect(() => (prop as any).identifier()).toThrow(
-			"Enums cannot be identifiers.",
-		);
+		const prop = new Property("enum") as unknown as Property<"text">;
+		expect(() => prop.identifier()).toThrow("Enums cannot be identifiers.");
 	});
 
 	test("identifier should throw for arrays", () => {
-		const prop = new Property("text").array();
-		expect(() => (prop as any).identifier()).toThrow(
-			"Arrays cannot be identifiers.",
-		);
+		const prop = new Property("text").array() as unknown as Property<"text">;
+		expect(() => prop.identifier()).toThrow("Arrays cannot be identifiers.");
 	});
 
 	test("references should store reference metadata", () => {
-		const mockRef = () => ({}) as any;
+		const mockRef = () => ({}) as unknown as never;
 		const prop = new Property("integer").references(mockRef, {
 			onDelete: "cascade",
 		});
@@ -116,7 +112,7 @@ describe("Property", () => {
 		expect(bothProp.toString()).toBe('text("desc").optional().unique()');
 
 		const refProp = new Property("integer")
-			.references(() => ({}) as any, { onDelete: "cascade" })
+			.references(() => ({}) as unknown as never, { onDelete: "cascade" })
 			.finalise("user_id");
 		expect(refProp.toString()).toBe(
 			"integer(\"user_id\").references(..., { onDelete: 'cascade' })",
@@ -153,9 +149,9 @@ describe("Property", () => {
 		expect(new Property("blob").toTypeScriptType()).toBe("Uint8Array");
 		expect(new Property("timestamp").toTypeScriptType()).toBe("Date");
 		expect(new Property("node").toTypeScriptType()).toBe("object");
-		expect(new Property("unknown_type" as any).toTypeScriptType()).toBe(
-			"unknown",
-		);
+		expect(
+			new Property("unknown_type" as unknown as "text").toTypeScriptType(),
+		).toBe("unknown");
 	});
 
 	test("toTypeScriptType for optional types", () => {

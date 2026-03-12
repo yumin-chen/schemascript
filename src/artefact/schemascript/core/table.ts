@@ -7,7 +7,7 @@ import {
 	sqliteTable,
 	text,
 } from "@/data/proxies/sqlite";
-import { field } from "./_field";
+import { field } from "./field";
 import type { SchemaBuilder } from "./schema";
 
 function Table(name: string, schemaBuilder: SchemaBuilder) {
@@ -68,6 +68,7 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 				case "blob":
 					builder = blob(columnName, { mode: "buffer" });
 					break;
+				case "datetime":
 				case "timestamp":
 					builder = integer(columnName, { mode: "timestamp" });
 					break;

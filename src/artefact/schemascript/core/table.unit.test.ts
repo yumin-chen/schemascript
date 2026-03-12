@@ -75,8 +75,8 @@ describe("Table", () => {
 	});
 
 	test("should handle array fields as JSON blobs", () => {
-		const MyTable = Table("my_table", () => ({
-			tags: field.text().array(),
+		const MyTable = Table("my_table", (prop) => ({
+			tags: prop.text().array(),
 		}));
 
 		const columns = (
