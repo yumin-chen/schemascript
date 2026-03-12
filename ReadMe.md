@@ -1,6 +1,6 @@
 # SchemaScript
 
-**SchemaScript** is a data-centric ORM for declaratively defining database schemas with maximum type safety and constraint enforcement. Built as an abstraction over backends like Drizzle ORM, it offers a fluent API running securely within a sandboxed Rust runtime.
+**SchemaScript** is a data-centric ORM that lets you declaratively define database schemas with maximum type safety and constraint enforcement. It's built as an abstraction over low-level backends like Drizzle ORM, offering a fluent API running securely within a sandboxed Rust runtime.
 
 ---
 
