@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import type { AnySQLiteColumn } from "@/data/proxies/sqlite";
 import { makeBuilder, Property } from "./property";
 import { value } from "./value";
 
@@ -233,7 +234,7 @@ describe("makeBuilder", () => {
 	test("should support references modifier on the builder", () => {
 		const prop = new Property("integer");
 		const builder = makeBuilder(prop);
-		const mockRef = () => ({}) as any;
+		const mockRef = () => ({}) as unknown as AnySQLiteColumn;
 
 		const refBuilder = builder.references(mockRef, { onDelete: "cascade" });
 		const finalProp = refBuilder();
