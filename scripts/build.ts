@@ -1,12 +1,13 @@
 import { $ } from "bun";
 
+const schemasEntrypoint = process.argv[process.argv.length - 1] ?? "src/data/schemas";
 const version = await $`git describe --tags --always`.text();
 const target = "SQLite";
 const buildTime = new Date().toISOString();
 const gitCommit = await $`git rev-parse HEAD`.text();
 
 await Bun.build({
-	entrypoints: ["./src/data/schemas/index.ts"],
+	entrypoints: [`./${schemasEntrypoint}/index.ts`],
 	outdir: "./out/schemas",
 	define: {
 		BUILD_VERSION: JSON.stringify(version.trim()),
