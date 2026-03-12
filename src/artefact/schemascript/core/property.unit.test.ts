@@ -64,20 +64,20 @@ describe("Property", () => {
 
 	test("identifier should throw for enums", () => {
 		const prop = new Property("enum");
-		expect(() => (prop as any).identifier()).toThrow(
+		expect(() => (prop as unknown as Property<"text">).identifier()).toThrow(
 			"Enums cannot be identifiers.",
 		);
 	});
 
 	test("identifier should throw for arrays", () => {
 		const prop = new Property("text").array();
-		expect(() => (prop as any).identifier()).toThrow(
+		expect(() => (prop as unknown as Property<"text">).identifier()).toThrow(
 			"Arrays cannot be identifiers.",
 		);
 	});
 
 	test("references should store reference metadata", () => {
-		const mockRef = () => ({}) as any;
+		const mockRef = () => ({}) as unknown as AnySQLiteColumn;
 		const prop = new Property("integer").references(mockRef, {
 			onDelete: "cascade",
 		});
