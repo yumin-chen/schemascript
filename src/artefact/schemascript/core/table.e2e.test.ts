@@ -418,6 +418,9 @@ export const testTable = Table("test_table_array", (prop) => ({
 	ids: prop.integer().array(),
 	flags: prop.boolean().array(),
 	nodes: prop.node().array(),
+	opt_tags: prop.text().array().optional(),
+	def_tags: prop.text().array().default(["a", "b"]),
+	roles: prop.enum({ options: ["ADMIN", "USER"] }).array(),
 }));
 `;
 		const fallbackSchema = `
@@ -428,6 +431,9 @@ export const testTable = sqliteTable("test_table_array", {
 	ids: blob("ids", { mode: "json" }).notNull(),
 	flags: blob("flags", { mode: "json" }).notNull(),
 	nodes: blob("nodes", { mode: "json" }).notNull(),
+	opt_tags: blob("opt_tags", { mode: "json" }),
+	def_tags: blob("def_tags", { mode: "json" }).notNull().default('["a","b"]'),
+	roles: blob("roles", { mode: "json" }).notNull(),
 });
 `;
 
@@ -447,7 +453,7 @@ export const testTable = sqliteTable("test_table_array", {
 	test("generated SQL should correctly reflect array columns as BLOB", () => {
 		if (!sqlContent) return;
 
-		const columns = ["tags", "ids", "flags", "nodes"];
+		const columns = ["tags", "ids", "flags", "nodes", "roles"];
 		for (const col of columns) {
 			expect(sqlContent).toContain(col);
 			const lines = sqlContent.split("\n");
@@ -457,5 +463,32 @@ export const testTable = sqliteTable("test_table_array", {
 			expect(colLine?.toLowerCase()).toContain("blob");
 			expect(colLine?.toUpperCase()).toContain("NOT NULL");
 		}
+	});
+
+	test("generated SQL should correctly reflect optional array columns", () => {
+		if (!sqlContent) return;
+
+		const col = "opt_tags";
+		expect(sqlContent).toContain(col);
+		const lines = sqlContent.split("\n");
+		const colLine = lines.find(
+			(line) => line.includes(`"${col}"`) || line.includes(`\`${col}\``),
+		);
+		expect(colLine?.toLowerCase()).toContain("blob");
+		expect(colLine?.toUpperCase()).not.toContain("NOT NULL");
+	});
+
+	test("generated SQL should correctly reflect array columns with default values", () => {
+		if (!sqlContent) return;
+
+		const col = "def_tags";
+		expect(sqlContent).toContain(col);
+		const lines = sqlContent.split("\n");
+		const colLine = lines.find(
+			(line) => line.includes(`"${col}"`) || line.includes(`\`${col}\``),
+		);
+		expect(colLine?.toLowerCase()).toContain("blob");
+		expect(colLine?.toUpperCase()).toContain("DEFAULT");
+		expect(colLine).toContain('["a","b"]');
 	});
 });
