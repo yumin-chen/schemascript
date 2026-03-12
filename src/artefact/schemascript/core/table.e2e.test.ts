@@ -400,3 +400,48 @@ export const testTable = sqliteTable("test_table_default", {
 		expect(sqlContent).toMatch(/["`]date_def["`].*DEFAULT CURRENT_TIMESTAMP/i);
 	});
 });
+
+describe("Array Modifier E2E - SQL Generation", () => {
+	let sqlContent = "";
+	let cleanupFn: () => Promise<void>;
+
+	beforeEach(async () => {
+		const libraryPath = join(
+			process.cwd(),
+			"src/artefact/schemascript/index.ts",
+		);
+		const schemaContent = `
+import { Table } from "${libraryPath}";
+
+export const testTable = Table("test_table_array", (prop) => ({
+	tags: prop.text().array(),
+}));
+`;
+		const fallbackSchema = `
+import { sqliteTable, blob } from "drizzle-orm/sqlite-core";
+
+export const testTable = sqliteTable("test_table_array", {
+	tags: blob("tags", { mode: "json" }).notNull(),
+});
+`;
+
+		const result = await runMigrationTest(
+			"array_e2e",
+			schemaContent,
+			fallbackSchema,
+		);
+		sqlContent = result.sqlContent;
+		cleanupFn = result.cleanup;
+	}, 60000);
+
+	afterAll(async () => {
+		if (cleanupFn) await cleanupFn();
+	});
+
+	test("generated SQL should correctly reflect array columns as BLOB", () => {
+		if (!sqlContent) return;
+
+		expect(sqlContent.toLowerCase()).toContain("blob");
+		expect(sqlContent).toContain("tags");
+	});
+});

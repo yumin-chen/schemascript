@@ -138,6 +138,9 @@ describe("Property", () => {
 		expect(defaultSqlProp.toString()).toBe(
 			'datetime("created_at").default(sql`...`)',
 		);
+
+		const arrayProp = new Property("text").array().finalise("tags");
+		expect(arrayProp.toString()).toBe('text("tags").array()');
 	});
 
 	test("toString() for enum types with array options", () => {
@@ -205,6 +208,16 @@ describe("Property", () => {
 		expect(new Property("text").optional().toTypeScriptType()).toBe(
 			"string | null",
 		);
+
+		expect(new Property("text").array().toTypeScriptType()).toBe("string[]");
+		expect(new Property("text").array().optional().toTypeScriptType()).toBe(
+			"string[] | null",
+		);
+
+		const enumArrayProp = new Property("enum").enumOptions({
+			options: ["A", "B"],
+		});
+		expect(enumArrayProp.array().toTypeScriptType()).toBe('("A" | "B")[]');
 
 		const unknownProp = new Property("unknown" as never);
 		expect(unknownProp.toTypeScriptType()).toBe("unknown");

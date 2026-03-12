@@ -110,3 +110,27 @@ describe("Default Modifier Integration", () => {
 		expect(columns.sql_def.default).toBeDefined();
 	});
 });
+
+describe("Array Modifier Integration", () => {
+	test("should correctly map all array primitive types to Drizzle columns", () => {
+		const MyTable = Table("array_integration", (prop) => ({
+			int_arr: prop.integer().array(),
+			real_arr: prop.real().array(),
+			text_arr: prop.text().array(),
+			bool_arr: prop.boolean().array(),
+			node_arr: prop.node().array(),
+		}));
+
+		const columns = (
+			MyTable as unknown as {
+				[key: symbol]: Record<string, { dataType: string }>;
+			}
+		)[Symbol.for("drizzle:Columns")];
+
+		expect(columns.int_arr.dataType).toBe("json");
+		expect(columns.real_arr.dataType).toBe("json");
+		expect(columns.text_arr.dataType).toBe("json");
+		expect(columns.bool_arr.dataType).toBe("json");
+		expect(columns.node_arr.dataType).toBe("json");
+	});
+});
