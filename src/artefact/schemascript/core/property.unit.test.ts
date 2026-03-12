@@ -44,6 +44,13 @@ describe("Property", () => {
 		expect(prop.isArray).toBe(false); // Immutability
 	});
 
+	test("array should be idempotent", () => {
+		const prop = new Property("text").array();
+		const arrayProp = prop.array();
+		expect(arrayProp).toBe(prop);
+		expect(arrayProp.isArray).toBe(true);
+	});
+
 	test("array should throw if property is identifier", () => {
 		const prop = new Property("integer").identifier();
 		expect(() => prop.array()).toThrow("Identifiers cannot be arrays.");
@@ -163,6 +170,46 @@ describe("Property", () => {
 	test("toTypeScriptType for array types", () => {
 		expect(new Property("text").array().toTypeScriptType()).toBe("string[]");
 		expect(new Property("integer").array().toTypeScriptType()).toBe("bigint[]");
+	});
+
+	test("chaining array and optional in different orders", () => {
+		const optArr = new Property("text").optional().array();
+		const arrOpt = new Property("text").array().optional();
+
+		expect(optArr.isArray).toBe(true);
+		expect(optArr.isOptional).toBe(true);
+		expect(arrOpt.isArray).toBe(true);
+		expect(arrOpt.isOptional).toBe(true);
+
+		expect(optArr.toTypeScriptType()).toBe("string[] | null");
+		expect(arrOpt.toTypeScriptType()).toBe("string[] | null");
+	});
+
+	test("chaining array and unique", () => {
+		const prop = new Property("text").array().unique();
+		expect(prop.isArray).toBe(true);
+		expect(prop.isUnique).toBe(true);
+	});
+
+	test("array with default value", () => {
+		const prop = new Property("text").array().default(["a", "b"]);
+		expect(prop.isArray).toBe(true);
+		expect(prop.hasDefault).toBe(true);
+		expect(prop.defaultValue).toEqual(["a", "b"]);
+	});
+
+	test("toString for complex array combinations", () => {
+		const prop = new Property("text")
+			.array()
+			.optional()
+			.unique()
+			.default(["a", "b"])
+			.finalise("tags");
+
+		const str = prop.toString();
+		expect(str).toBe(
+			'text("tags").optional().unique().array().default(["a","b"])',
+		);
 	});
 
 	test("toTypeScriptType for enums", () => {
