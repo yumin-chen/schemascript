@@ -65,6 +65,7 @@ All properties support the following modifiers through method chaining:
 - `.unique()`: Adds a unique constraint (mapped to a unique index in SQLite).
 - `.default(value)`: Sets a default value. Supports literals and SQL expressions like `value.now`.
 - `.references(ref, actions?)`: Creates a foreign key constraint.
+- `.array()`: Marks the column as an array.
 
 **Note**: All fields are **required** (non-nullable) by default. Use `.optional()` to allow null values.
 
