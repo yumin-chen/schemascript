@@ -120,6 +120,10 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 			}) as typeof builder;
 		}
 
+		if (prop.isArray) {
+			builder = blob(columnName, { mode: "json" }).$type<unknown[]>();
+		}
+
 		sqliteColumns[key] = builder as unknown as DrizzlePrimitive;
 	}
 

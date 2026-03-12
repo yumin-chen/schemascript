@@ -166,4 +166,27 @@ describe("Property", () => {
 		expect(json.isUnique).toBe(true);
 		expect(json.isOptional).toBe(true);
 	});
+
+	test("array() should return a new property with isArray true", () => {
+		const prop = new Property("text");
+		const arrayProp = prop.array();
+		expect(arrayProp.isArray).toBe(true);
+		expect(prop.isArray).toBe(false);
+
+		// idempotent
+		expect(arrayProp.array()).toBe(arrayProp);
+	});
+
+	test("toTypeScriptType() handles array", () => {
+		const prop = new Property("text").array();
+		expect(prop.toTypeScriptType()).toBe("string[]");
+
+		const optArrayProp = new Property("text").array().optional();
+		expect(optArrayProp.toTypeScriptType()).toBe("string[] | null");
+	});
+
+	test("toString() handles array", () => {
+		const prop = new Property("text").array().finalise("tags");
+		expect(prop.toString()).toBe('text("tags").array()');
+	});
 });

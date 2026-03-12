@@ -64,6 +64,11 @@ class Property<
 		return this.setOptions({ enumOptions });
 	}
 
+	array(): Property<TypeName, JavaScriptType[], EnumOptionType> {
+		if (this.isArray) return this as unknown as Property<TypeName, JavaScriptType[], EnumOptionType>;
+		return this.setOptions({ isArray: true }) as unknown as Property<TypeName, JavaScriptType[], EnumOptionType>;
+	}
+
 	unique(): Property<TypeName, JavaScriptType, EnumOptionType> {
 		if (this.isUnique) return this;
 		return this.setOptions({ isUnique: true });
@@ -121,6 +126,10 @@ class Property<
 		return !!this.options.isIdentifier;
 	}
 
+	get isArray(): boolean {
+		return !!this.options.isArray;
+	}
+
 	get identifierConfigs(): { autoIncrement?: boolean } | undefined {
 		return this.options.identifierOptions;
 	}
@@ -129,6 +138,7 @@ class Property<
 		const name = this.name ?? "unnamed";
 		const unique = this.isUnique ? ".unique()" : "";
 		const optional = this.isOptional ? ".optional()" : "";
+		const array = this.isArray ? ".array()" : "";
 		let identifier = "";
 		if (this.isIdentifier) {
 			identifier = ".identifier()";
@@ -177,12 +187,12 @@ class Property<
 					const values = Object.entries(options)
 						.map(([k, v]) => `\t\t\t\t${k}: ${v},`)
 						.join("\n");
-					return `enum("${name}",\n    {   options:\n\t\t\t{\n${values}\n\t\t\t}\n\t\t}\n   )${optional}${unique}${identifier}${defaultValue}`;
+					return `enum("${name}",\n    {   options:\n\t\t\t{\n${values}\n\t\t\t}\n\t\t}\n   )${optional}${unique}${array}${identifier}${defaultValue}`;
 				}
 			}
 		}
 
-		return `${this._type}("${name}")${optional}${unique}${identifier}${defaultValue}${references}`;
+		return `${this._type}("${name}")${optional}${unique}${array}${identifier}${defaultValue}${references}`;
 	}
 
 	toTypeScriptType(): string {
@@ -231,6 +241,10 @@ class Property<
 				typeStr = "unknown";
 		}
 
+		if (this.isArray) {
+			typeStr = `${typeStr}[]`;
+		}
+
 		if (this.isOptional) {
 			typeStr = `${typeStr} | null`;
 		}
@@ -251,6 +265,7 @@ type PropertyOptions<JavaScriptType = unknown, EnumOptionType = unknown> = {
 	enumOptions?: EnumOptionType;
 	isUnique?: boolean;
 	isOptional?: boolean;
+	isArray?: boolean;
 	isIdentifier?: boolean;
 	identifierOptions?: { autoIncrement?: boolean };
 	references?: ReferenceOptions;
