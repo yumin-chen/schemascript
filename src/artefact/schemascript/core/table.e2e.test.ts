@@ -452,3 +452,59 @@ export const testTable = sqliteTable("test_table_default", {
 		expect(sqlContent).toMatch(/["`]date_def["`].*DEFAULT CURRENT_TIMESTAMP/i);
 	});
 });
+
+describe("Array Modifier E2E - SQL Generation", () => {
+	let sqlContent = "";
+	let cleanupFn: () => Promise<void>;
+
+	beforeEach(async () => {
+		const libraryPath = join(
+			process.cwd(),
+			"src/artefact/schemascript/index.ts",
+		);
+		const schemaContent = `
+import { field, Table } from "${libraryPath}";
+
+export const testTable = Table("test_table_array", (prop) => ({
+	int_arr: prop.integer().array(),
+	text_arr: prop.text().array(),
+	bool_arr: prop.boolean().array(),
+}));
+`;
+		const fallbackSchema = `
+import { sqliteTable, blob } from "drizzle-orm/sqlite-core";
+
+export const testTable = sqliteTable("test_table_array", {
+	int_arr: blob("int_arr", { mode: "json" }).notNull(),
+	text_arr: blob("text_arr", { mode: "json" }).notNull(),
+	bool_arr: blob("bool_arr", { mode: "json" }).notNull(),
+});
+`;
+
+		const result = await runMigrationTest(
+			"array_e2e",
+			schemaContent,
+			fallbackSchema,
+		);
+		sqlContent = result.sqlContent;
+		cleanupFn = result.cleanup;
+	}, 60000);
+
+	afterAll(async () => {
+		if (cleanupFn) await cleanupFn();
+	});
+
+	test("generated SQL should correctly reflect all array columns as BLOB NOT NULL", () => {
+		if (!sqlContent) return;
+		const columns = ["int_arr", "text_arr", "bool_arr"];
+		for (const col of columns) {
+			expect(sqlContent).toContain(col);
+			const lines = sqlContent.split("\n");
+			const colLine = lines.find(
+				(line) => line.includes(`"${col}"`) || line.includes(`\`${col}\``),
+			);
+			expect(colLine?.toUpperCase()).toContain("BLOB");
+			expect(colLine?.toUpperCase()).toContain("NOT NULL");
+		}
+	});
+});

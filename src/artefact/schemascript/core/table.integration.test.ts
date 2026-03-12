@@ -110,3 +110,36 @@ describe("Default Modifier Integration", () => {
 		expect(columns.sql_def.default).toBeDefined();
 	});
 });
+
+describe("Array Modifier Integration", () => {
+	test("should correctly map all array primitive types to Drizzle columns as JSON blobs", () => {
+		const MyTable = Table("array_integration", (prop) => ({
+			int_arr: prop.integer().array(),
+			real_arr: prop.real().array(),
+			text_arr: prop.text().array(),
+			bool_arr: prop.boolean().array(),
+			blob_arr: prop.blob().array(),
+			date_arr: prop.datetime().array(),
+			node_arr: prop.node().array(),
+			enum_arr: prop.enum({ options: ["A", "B"] }).array(),
+		}));
+
+		const columns = (
+			MyTable as unknown as {
+				[key: symbol]: Record<
+					string,
+					{ columnType: string; isArray: boolean; mode: string }
+				>;
+			}
+		)[Symbol.for("drizzle:Columns")];
+
+		expect(columns.int_arr.columnType).toBe("SQLiteBlobJson");
+		expect(columns.real_arr.columnType).toBe("SQLiteBlobJson");
+		expect(columns.text_arr.columnType).toBe("SQLiteBlobJson");
+		expect(columns.bool_arr.columnType).toBe("SQLiteBlobJson");
+		expect(columns.blob_arr.columnType).toBe("SQLiteBlobJson");
+		expect(columns.date_arr.columnType).toBe("SQLiteBlobJson");
+		expect(columns.node_arr.columnType).toBe("SQLiteBlobJson");
+		expect(columns.enum_arr.columnType).toBe("SQLiteBlobJson");
+	});
+});

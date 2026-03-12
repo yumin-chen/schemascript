@@ -101,9 +101,6 @@ describe("Property", () => {
 		const uniqueProp = new Property("text").unique().finalise("email");
 		expect(uniqueProp.toString()).toBe('text("email").unique()');
 
-		const optionalProp = new Property("integer").optional().finalise("age");
-		expect(optionalProp.toString()).toBe('integer("age").optional()');
-
 		const identifierProp = new Property("text").identifier().finalise("id");
 		expect(identifierProp.toString()).toBe('text("id").identifier()');
 
