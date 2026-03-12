@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Tests and Test Utilities
+**/*.test.ts
+src/utils/testing/
+
+# Development and CI Configuration
+.gitlab-ci.yml
+scripts/
+examples/
+biome.json
+tsconfig.json
+bun.lock
+
+# Local Data and Temporary Files
+storage/
+temp_test_*
+.env*
+.idea/
+.DS_Store
+
+# Logs and Coverage
+logs/
+coverage/
+*.lcov
+
+# Build Artifacts
+# These are ignored in .gitignore, so we must explicitly include them
+# if we want them in the npm package.
+!dist/
+!out/
+!drizzle/
