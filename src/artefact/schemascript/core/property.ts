@@ -354,14 +354,39 @@ function makeBuilder<
 		return property;
 	}) as PropertyBuilder<TypeName, JavaScriptType, EnumOptionType>;
 
-	builder.optional = () => makeBuilder(property.optional() as any);
+	builder.optional = () =>
+		makeBuilder(
+			property.optional() as unknown as Property<
+				TypeName,
+				JavaScriptType | null,
+				EnumOptionType
+			>,
+		);
 	builder.unique = () => makeBuilder(property.unique());
-	builder.array = () => makeBuilder(property.array());
-	builder.identifier = (config?: any) =>
-		makeBuilder(property.identifier(config) as any);
-	builder.default = (value: any) => makeBuilder(property.default(value));
-	builder.references = (ref: any, actions?: any) =>
-		makeBuilder(property.references(ref, actions));
+	builder.array = () =>
+		makeBuilder(
+			property.array() as unknown as Property<
+				TypeName,
+				JavaScriptType[],
+				EnumOptionType
+			>,
+		);
+	builder.identifier = (
+		config?: TypeName extends "integer" ? { autoIncrement: boolean } : never,
+	) =>
+		makeBuilder(
+			property.identifier(
+				config as unknown as TypeName extends "integer"
+					? { autoIncrement: boolean }
+					: never,
+			) as unknown as Property<TypeName, JavaScriptType, EnumOptionType>,
+		);
+	builder.default = (value: JavaScriptType | SQL) =>
+		makeBuilder(property.default(value));
+	builder.references = (
+		ref: () => AnySQLiteColumn,
+		actions?: ReferenceActions,
+	) => makeBuilder(property.references(ref, actions));
 
 	return builder;
 }
