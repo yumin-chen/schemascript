@@ -344,6 +344,37 @@ export const posts = sqliteTable("posts", {
 		expect(sqlContent).toContain("ON DELETE cascade");
 		expect(sqlContent).toContain("ON UPDATE no action");
 	});
+
+	test("generated SQL should correctly reflect multiple foreign keys with complex actions", async () => {
+		const libraryPath = join(
+			process.cwd(),
+			"src/artefact/schemascript/index.ts",
+		);
+		const schemaContent = `
+import { field, Table } from "${libraryPath}";
+
+export const tableA = Table("table_a", (prop) => ({
+	id: prop.integer().identifier(),
+}));
+
+export const tableB = Table("table_b", (prop) => ({
+	id: prop.integer().identifier(),
+}));
+
+export const multiFkTable = Table("multi_fk_table", (prop) => ({
+	id: prop.integer().identifier(),
+	a_id: prop.integer().references(() => tableA.id, { onDelete: 'restrict' }),
+	b_id: prop.integer().references(() => tableB.id, { onUpdate: 'cascade', onDelete: 'set default' }),
+}));
+`;
+		const result = await runMigrationTest("multi_fk_e2e", schemaContent);
+		const sql = result.sqlContent;
+
+		expect(sql).toContain("FOREIGN KEY (`a_id`) REFERENCES `table_a`(`id`) ON UPDATE no action ON DELETE restrict");
+		expect(sql).toContain("FOREIGN KEY (`b_id`) REFERENCES `table_b`(`id`) ON UPDATE cascade ON DELETE set default");
+
+		await result.cleanup();
+	}, 60000);
 });
 
 describe("Default Modifier E2E - SQL Generation", () => {

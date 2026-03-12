@@ -89,6 +89,36 @@ describe("Property", () => {
 		expect(prop.reference?.actions?.onDelete).toBe("cascade");
 	});
 
+	test("references should support all ReferenceAction types", () => {
+		const mockRef = () => ({}) as unknown as never;
+		const actions = [
+			"cascade",
+			"restrict",
+			"no action",
+			"set null",
+			"set default",
+		] as const;
+
+		for (const action of actions) {
+			const prop = new Property("integer").references(mockRef, {
+				onDelete: action,
+				onUpdate: action,
+			});
+			expect(prop.reference?.actions?.onDelete).toBe(action);
+			expect(prop.reference?.actions?.onUpdate).toBe(action);
+		}
+	});
+
+	test("references should support combinations of onDelete and onUpdate", () => {
+		const mockRef = () => ({}) as unknown as never;
+		const prop = new Property("integer").references(mockRef, {
+			onDelete: "cascade",
+			onUpdate: "restrict",
+		});
+		expect(prop.reference?.actions?.onDelete).toBe("cascade");
+		expect(prop.reference?.actions?.onUpdate).toBe("restrict");
+	});
+
 	test("default should store default value", () => {
 		const prop = new Property("integer").default(42n);
 		expect(prop.hasDefault).toBe(true);
@@ -123,6 +153,23 @@ describe("Property", () => {
 			.finalise("user_id");
 		expect(refProp.toString()).toBe(
 			"integer(\"user_id\").references(..., { onDelete: 'cascade' })",
+		);
+
+		const refPropUpdate = new Property("integer")
+			.references(() => ({}) as unknown as never, { onUpdate: "restrict" })
+			.finalise("user_id");
+		expect(refPropUpdate.toString()).toBe(
+			"integer(\"user_id\").references(..., { onUpdate: 'restrict' })",
+		);
+
+		const refPropBoth = new Property("integer")
+			.references(() => ({}) as unknown as never, {
+				onDelete: "set null",
+				onUpdate: "cascade",
+			})
+			.finalise("user_id");
+		expect(refPropBoth.toString()).toBe(
+			"integer(\"user_id\").references(..., { onUpdate: 'cascade', onDelete: 'set null' })",
 		);
 
 		const defProp = new Property("timestamp")
@@ -196,6 +243,20 @@ describe("Property", () => {
 		expect(prop.isArray).toBe(true);
 		expect(prop.hasDefault).toBe(true);
 		expect(prop.defaultValue).toEqual(["a", "b"]);
+	});
+
+	test("chaining references with other modifiers", () => {
+		const mockRef = () => ({}) as unknown as never;
+		const prop = new Property("integer")
+			.optional()
+			.unique()
+			.references(mockRef, { onDelete: "cascade" })
+			.default(1n);
+
+		expect(prop.isOptional).toBe(true);
+		expect(prop.isUnique).toBe(true);
+		expect(prop.reference?.ref).toBe(mockRef);
+		expect(prop.defaultValue).toBe(1n);
 	});
 
 	test("toString for complex array combinations", () => {

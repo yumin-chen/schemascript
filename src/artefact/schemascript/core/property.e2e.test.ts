@@ -21,6 +21,7 @@ export const parent = Table("parent", (prop) => ({
 export const testTable = Table("test_modifiers", (prop) => ({
 	id: prop.integer().identifier({ autoIncrement: true }),
 	parent_id: prop.integer().references(() => parent.id, { onDelete: 'cascade' }),
+	other_id: prop.integer().references(() => parent.id, { onUpdate: 'restrict', onDelete: 'set null' }),
 	required_unique: prop.text().unique(),
 	optional_field: prop.text().optional(),
 	status: prop.integer().default(1),
@@ -48,6 +49,9 @@ export const testTable = Table("test_modifiers", (prop) => ({
 		);
 		expect(sqlContent).toContain(
 			"FOREIGN KEY (`parent_id`) REFERENCES `parent`(`id`) ON UPDATE no action ON DELETE cascade",
+		);
+		expect(sqlContent).toContain(
+			"FOREIGN KEY (`other_id`) REFERENCES `parent`(`id`) ON UPDATE restrict ON DELETE set null",
 		);
 		expect(sqlContent).toContain("`status` integer DEFAULT 1 NOT NULL");
 		expect(sqlContent).toContain("`tags` blob NOT NULL");

@@ -87,6 +87,62 @@ describe("References Integration", () => {
 		const fk = inlineFks[0];
 		expect(fk.onDelete).toBe("cascade");
 	});
+
+	test("should support multiple foreign keys pointing to different tables", () => {
+		const TableA = Table("table_a", (prop) => ({
+			id: prop.integer().identifier(),
+		}));
+
+		const TableB = Table("table_b", (prop) => ({
+			id: prop.integer().identifier(),
+		}));
+
+		const TableC = Table("table_c", (prop) => ({
+			id: prop.integer().identifier(),
+			a_id: prop.integer().references(() => TableA.id),
+			b_id: prop.integer().references(() => TableB.id),
+		}));
+
+		const inlineFks = (
+			TableC as unknown as {
+				[key: symbol]: unknown[];
+			}
+		)[Symbol.for("drizzle:SQLiteInlineForeignKeys")];
+
+		expect(inlineFks).toHaveLength(2);
+	});
+
+	test("should correctly map all ReferenceAction types", () => {
+		const TargetTable = Table("target", (prop) => ({
+			id: prop.integer().identifier(),
+		}));
+
+		const actions = [
+			"cascade",
+			"restrict",
+			"no action",
+			"set null",
+			"set default",
+		] as const;
+
+		for (const action of actions) {
+			const TestTable = Table(`test_${action.replace(" ", "_")}`, (prop) => ({
+				ref_id: prop.integer().references(() => TargetTable.id, {
+					onDelete: action,
+					onUpdate: action,
+				}),
+			}));
+
+			const inlineFks = (
+				TestTable as unknown as {
+					[key: symbol]: { onDelete: string; onUpdate: string }[];
+				}
+			)[Symbol.for("drizzle:SQLiteInlineForeignKeys")];
+
+			expect(inlineFks[0].onDelete).toBe(action);
+			expect(inlineFks[0].onUpdate).toBe(action);
+		}
+	});
 });
 
 describe("Default Modifier Integration", () => {
