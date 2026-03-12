@@ -125,7 +125,7 @@ describe("Property", () => {
 			"integer(\"user_id\").references(..., { onDelete: 'cascade' })",
 		);
 
-		const defProp = new Property("timestamp")
+		const defProp = new Property("datetime")
 			.default(value.now)
 			.finalise("created_at");
 		expect(defProp.toString()).toContain(".default(");
@@ -154,7 +154,7 @@ describe("Property", () => {
 		expect(new Property("text").toTypeScriptType()).toBe("string");
 		expect(new Property("boolean").toTypeScriptType()).toBe("boolean");
 		expect(new Property("blob").toTypeScriptType()).toBe("Uint8Array");
-		expect(new Property("timestamp").toTypeScriptType()).toBe("Date");
+		expect(new Property("datetime").toTypeScriptType()).toBe("Date");
 		expect(new Property("node").toTypeScriptType()).toBe("object");
 		expect(
 			new Property("unknown_type" as unknown as "text").toTypeScriptType(),

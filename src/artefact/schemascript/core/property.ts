@@ -241,7 +241,7 @@ class Property<
 			case "blob":
 				typeStr = "Uint8Array";
 				break;
-			case "timestamp":
+			case "datetime":
 				typeStr = "Date";
 				break;
 			case "node":
