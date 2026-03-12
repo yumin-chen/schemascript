@@ -1,6 +1,7 @@
 import { $ } from "bun";
 
-const schemasEntrypoint = process.argv[2] ?? "src/data/schemas";
+const schemasEntrypoint =
+	process.env.SCHEMA_PATH ?? process.argv[2] ?? "src/data/schemas";
 const version = await $`git describe --tags --always`.text();
 const target = "SQLite";
 const buildTime = new Date().toISOString();

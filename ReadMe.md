@@ -17,9 +17,19 @@
 
 ### Schema Definition & Table Creation
 
-Schemas are defined using the `Schema` function, which creates a type-safe schema definition that can be used for type generation and validation:
+Schemas are defined using the `Schema` function, which creates a type-safe schema definition that can be used for type generation and validation.
 
-Tables are created using the `Table` function, which converts your schema definition into your targeted ORM table instance ready for database operations:
+Tables are created using the `Table` function, which converts your schema definition into your targeted ORM table instance ready for database operations.
+
+By default, the build script looks for your schema entrypoint at `src/data/schemas/index.ts`. You can customize this path using a CLI argument or the `SCHEMA_PATH` environment variable:
+
+```bash
+# Using CLI argument
+bun run build my/custom/path
+
+# Using environment variable
+SCHEMA_PATH=my/custom/path bun run build
+```
 
 ```typescript
 import type { SchemaBuilder } from "@artefacto/schemascript";
