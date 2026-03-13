@@ -1,35 +1,14 @@
 import { $ } from "bun";
 
-const schemasEntrypoint = process.argv[2] ?? "src/data/schemas";
 const version = await $`git describe --tags --always`.text();
 const target = "SQLite";
 const buildTime = new Date().toISOString();
 const gitCommit = await $`git rev-parse HEAD`.text();
 
-await Bun.build({
-	entrypoints: [`./${schemasEntrypoint}/index.ts`],
-	outdir: "./out/schemas",
-	define: {
-		BUILD_VERSION: JSON.stringify(version.trim()),
-		BUILD_TARGET: JSON.stringify(target),
-		BUILD_TIME: JSON.stringify(buildTime),
-		GIT_COMMIT: JSON.stringify(gitCommit.trim()),
-	},
-	target: "node",
-	format: "esm",
-});
-
-const schemaFilePath = "./out/schemas/index.js";
-const generateSql =
-	await $`BUILD_TARGET=SQLite drizzle-kit generate --dialect sqlite --schema ${schemaFilePath}`;
-
-if (generateSql.exitCode !== 0) {
-	console.error("Error generating SQL:", generateSql.stderr);
-	process.exit(1);
-}
+const entrypoints = ["./src/main.ts", "./src/artefact/schemascript/index.ts"];
 
 await Bun.build({
-	entrypoints: ["./src/main.ts"],
+	entrypoints,
 	outdir: "./dist",
 	define: {
 		BUILD_VERSION: JSON.stringify(version.trim()),
@@ -37,8 +16,9 @@ await Bun.build({
 		BUILD_TIME: JSON.stringify(buildTime),
 		GIT_COMMIT: JSON.stringify(gitCommit.trim()),
 	},
-	target: "node",
+	target: "bun",
 	format: "esm",
+	sourcemap: "external",
 });
 
 console.info(
