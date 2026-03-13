@@ -1,7 +1,8 @@
 {
 	"name": "@artefacto/schemascript",
 	"type": "module",
-	"private": true,
+	"private": false,
+	"version": "0.0.1",
 	"module": "./dist/artefact/schemascript/index.js",
 	"types": "./dist/artefact/schemascript/index.d.ts",
 	"bin": {
