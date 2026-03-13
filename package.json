@@ -9,7 +9,7 @@
 	"exports": {
 		".": "./dist/artefact/schemascript/index.js"
 	},
-	"version": "0.0.1-alpha.1",
+	"version": "0.0.1",
 	"private": false,
 	"scripts": {
 		"fix": "bun run check",
