@@ -1,6 +1,9 @@
 {
 	"name": "@artefacto/schemascript",
 	"module": "src/main.ts",
+	"bin": {
+		"@artefacto/schemascript": "./src/main.ts"
+	},
 	"type": "module",
 	"version": "0.0.1-alpha.1",
 	"private": false,
