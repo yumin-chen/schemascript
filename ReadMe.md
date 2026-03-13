@@ -143,6 +143,35 @@ interface User {
 
 ---
 
+## CLI
+
+SchemaScript includes a powerful CLI to manage your schemas and migrations.
+
+### Commands
+
+- `compile <path>`: Compiles a schema file or directory using Bun.build.
+- `evaluate <path>`: Dynamically evaluates a schema and prints its structure.
+- `generate <path>`: Generates SQL migrations using `drizzle-kit`.
+
+### Options
+
+- `-h, --help`: Show help message.
+- `-v, --version`: Show version information.
+- `-o, --outdir`: Output directory for the `compile` command (default: `./dist`).
+- `-d, --dialect`: Database dialect for the `generate` command (default: `sqlite`).
+
+### Usage
+
+```bash
+# Evaluate a schema
+npx @artefacto/schemascript evaluate ./src/data/schemas/user.ts
+
+# Generate migrations
+npx @artefacto/schemascript generate ./src/data/schemas/index.ts --dialect sqlite
+```
+
+---
+
 ## Architecture
 
 The project is architected in three main domains, ensuring a hard boundary between high-level definition and low-level execution.
