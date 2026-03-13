@@ -59,6 +59,20 @@ Options:
 	const command = positionals[0];
 	const path = positionals[1];
 
+	if (!command) {
+		const defaultPath = "src/data/schemas";
+		try {
+			// Resolve the default path - if it exists, evaluate it.
+			// Bun.resolveSync will throw if not found.
+			Bun.resolveSync(defaultPath, process.cwd());
+			await evaluate(defaultPath);
+			process.exit(0);
+		} catch {
+			console.log(helpMessage);
+			process.exit(0);
+		}
+	}
+
 	switch (command) {
 		case "compile":
 			if (!path) {
