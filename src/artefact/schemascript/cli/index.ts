@@ -68,7 +68,22 @@ Options:
 			await evaluate(defaultPath);
 			process.exit(0);
 		} catch {
-			console.log(helpMessage);
+			// Fallback: try to find any .ts or .js files in the current directory
+			const glob = new Bun.Glob("**/*.{ts,js}");
+			let foundAny = false;
+			for (const file of glob.scanSync({
+				cwd: process.cwd(),
+				onlyFiles: true,
+				exclude: ["node_modules/**", "dist/**", "out/**", "src/**", "storage/**"],
+			})) {
+				if (await evaluate(file, true)) {
+					foundAny = true;
+				}
+			}
+
+			if (!foundAny) {
+				console.log(helpMessage);
+			}
 			process.exit(0);
 		}
 	}
