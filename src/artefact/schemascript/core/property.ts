@@ -68,7 +68,12 @@ class Property<
 	}
 
 	array(): Property<TypeName, JavaScriptType[], EnumOptionType> {
-		if (this.isArray) return this;
+		if (this.isArray)
+			return this as unknown as Property<
+				TypeName,
+				JavaScriptType[],
+				EnumOptionType
+			>;
 		if (this.isIdentifier) {
 			throw new Error("Identifiers cannot be arrays.");
 		}
@@ -292,7 +297,7 @@ class Property<
 	}
 }
 
-type PropertyOptions<_JavaScriptType = unknown, EnumOptionType = unknown> = {
+type PropertyOptions<JavaScriptType = unknown, EnumOptionType = unknown> = {
 	name?: string;
 	enumOptions?: EnumOptionType;
 	isOptional: boolean;
@@ -321,8 +326,8 @@ type ReferenceActions = {
 
 interface PropertyBuilder<
 	TypeName extends string = string,
-	JavaScriptType = unknown,
-	EnumOptionType = unknown,
+	JavaScriptType = any,
+	EnumOptionType = never,
 > {
 	(config?: EnumOptionType): Property<TypeName, JavaScriptType, EnumOptionType>;
 	optional(): PropertyBuilder<TypeName, JavaScriptType | null, EnumOptionType>;

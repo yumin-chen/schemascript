@@ -171,4 +171,23 @@ describe("Table", () => {
 		expect(columns.status.mapFromDriverValue(0)).toBe("active");
 		expect(columns.status.mapFromDriverValue(1)).toBe("inactive");
 	});
+
+	test("should throw error for unknown enum value from driver", () => {
+		const MyTable = Table("enum_error_test", (prop) => ({
+			status: prop.enum({ options: ["active", "inactive"] }),
+		}));
+
+		const columns = (
+			MyTable as unknown as {
+				[key: symbol]: Record<
+					string,
+					{ mapFromDriverValue: (v: unknown) => unknown }
+				>;
+			}
+		)[Symbol.for("drizzle:Columns")];
+
+		expect(() => columns.status.mapFromDriverValue(99)).toThrow(
+			"Unknown enum value from driver: 99",
+		);
+	});
 });
