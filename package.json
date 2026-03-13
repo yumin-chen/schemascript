@@ -1,6 +1,12 @@
 {
 	"name": "@artefacto/schemascript",
-	"module": "src/main.ts",
+	"module": "src/artefact/schemascript/index.ts",
+	"main": "src/artefact/schemascript/index.ts",
+	"types": "src/artefact/schemascript/index.ts",
+	"exports": {
+		".": "./src/artefact/schemascript/index.ts",
+		"./cli": "./src/artefact/schemascript/cli/index.ts"
+	},
 	"bin": {
 		"@artefacto/schemascript": "./src/main.ts"
 	},

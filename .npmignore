@@ -1,0 +1,6 @@
+!dist/
+!out/
+!drizzle/
+node_modules/
+storage/
+temp_test_*

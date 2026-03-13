@@ -15,7 +15,7 @@ await Bun.build({
 		BUILD_TIME: JSON.stringify(buildTime),
 		GIT_COMMIT: JSON.stringify(gitCommit.trim()),
 	},
-	target: "node",
+	target: "bun",
 	format: "esm",
 });
 
@@ -37,7 +37,7 @@ await Bun.build({
 		BUILD_TIME: JSON.stringify(buildTime),
 		GIT_COMMIT: JSON.stringify(gitCommit.trim()),
 	},
-	target: "node",
+	target: "bun",
 	format: "esm",
 });
 
