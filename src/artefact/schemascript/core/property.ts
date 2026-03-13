@@ -68,7 +68,12 @@ class Property<
 	}
 
 	array(): Property<TypeName, JavaScriptType[], EnumOptionType> {
-		if (this.isArray) return this;
+		if (this.isArray)
+			return this as unknown as Property<
+				TypeName,
+				JavaScriptType[],
+				EnumOptionType
+			>;
 		if (this.isIdentifier) {
 			throw new Error("Identifiers cannot be arrays.");
 		}
@@ -292,7 +297,7 @@ class Property<
 	}
 }
 
-type PropertyOptions<_JavaScriptType = unknown, EnumOptionType = unknown> = {
+type PropertyOptions<JavaScriptType = unknown, EnumOptionType = unknown> = {
 	name?: string;
 	enumOptions?: EnumOptionType;
 	isOptional: boolean;
@@ -375,7 +380,9 @@ function makeBuilder<
 		config?: TypeName extends "integer" ? { autoIncrement: boolean } : never,
 	) =>
 		makeBuilder(
-			property.identifier(
+			(
+				property as unknown as any
+			).identifier(
 				config as unknown as TypeName extends "integer"
 					? { autoIncrement: boolean }
 					: never,

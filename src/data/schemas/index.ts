@@ -1,1 +1,1 @@
-export * from "./artefact.ts";
+export * from "./artefact";

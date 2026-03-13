@@ -1,6 +1,6 @@
 import type { FieldBuilder } from "./field";
 import { field } from "./field";
-import type { Property } from "./property";
+import type { Property, PropertyBuilder } from "./property";
 
 function Schema<TName extends string>(
 	name: TName,

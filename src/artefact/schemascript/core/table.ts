@@ -90,8 +90,10 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 							const options = config.options;
 							mapping = {};
 							for (let i = 0; i < options.length; i++) {
-								mapping[options[i]] = i;
-								reverseMapping[i] = options[i];
+								const option = options[i];
+								if (option === undefined) continue;
+								mapping[option] = i;
+								reverseMapping[i] = option;
 							}
 						} else {
 							mapping = config.options;
@@ -108,10 +110,18 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 								return "integer";
 							},
 							fromDriver(value: number) {
-								return reverseMapping[value];
+								const result = reverseMapping[value];
+								if (result === undefined) {
+									throw new Error(`Invalid enum value from driver: ${value}`);
+								}
+								return result;
 							},
 							toDriver(value: string) {
-								return mapping[value];
+								const result = mapping[value];
+								if (result === undefined) {
+									throw new Error(`Invalid enum value to driver: ${value}`);
+								}
+								return result;
 							},
 						});
 						builder = EnumType(columnName);

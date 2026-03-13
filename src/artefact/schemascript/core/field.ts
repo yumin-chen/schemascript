@@ -26,13 +26,13 @@ const Field = (): FieldBuilder => ({
 const field = Field();
 
 interface FieldBuilder {
-	integer: PropertyBuilder<"integer", bigint>;
-	real: PropertyBuilder<"real", number>;
-	text: PropertyBuilder<"text", string>;
-	blob: PropertyBuilder<"blob", Uint8Array>;
-	boolean: PropertyBuilder<"boolean", boolean>;
-	datetime: PropertyBuilder<"datetime", Date | bigint | string | SQL>;
-	node: PropertyBuilder<"node", object>;
+	integer: PropertyBuilder<"integer", bigint, never>;
+	real: PropertyBuilder<"real", number, never>;
+	text: PropertyBuilder<"text", string, never>;
+	blob: PropertyBuilder<"blob", Uint8Array, never>;
+	boolean: PropertyBuilder<"boolean", boolean, never>;
+	datetime: PropertyBuilder<"datetime", Date | bigint | string | SQL, never>;
+	node: PropertyBuilder<"node", object, never>;
 	enum: (config: {
 		options: string[] | Record<string, number>;
 	}) => Property<
