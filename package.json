@@ -1,8 +1,12 @@
 {
 	"name": "@artefacto/schemascript",
-	"module": "src/main.ts",
 	"type": "module",
 	"private": true,
+	"module": "./dist/artefact/schemascript/index.js",
+	"types": "./dist/artefact/schemascript/index.d.ts",
+	"bin": {
+		"@artefacto/schemascript": "dist/main.ts"
+	},
 	"scripts": {
 		"fix": "bun run check",
 		"check": "bun x --bun @biomejs/biome check --fix .",
