@@ -60,13 +60,28 @@ Options:
 
 	switch (command) {
 		case "compile":
-			await compile(input!, values.outdir ?? "./dist");
+			if (!input) {
+				console.error('Error: Missing input file for command "compile"');
+				showHelp();
+				process.exit(1);
+			}
+			await compile(input, values.outdir ?? "./dist");
 			break;
 		case "evaluate":
-			await evaluate(input!);
+			if (!input) {
+				console.error('Error: Missing input file for command "evaluate"');
+				showHelp();
+				process.exit(1);
+			}
+			await evaluate(input);
 			break;
 		case "generate":
-			await generate(input!, values.dialect as string, values.outdir);
+			if (!input) {
+				console.error('Error: Missing input file for command "generate"');
+				showHelp();
+				process.exit(1);
+			}
+			await generate(input, values.dialect as string, values.outdir);
 			break;
 		default:
 			console.error(`Unknown command: ${command}`);

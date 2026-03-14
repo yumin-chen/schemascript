@@ -34,13 +34,13 @@ const enumeration = new Property<
 >("enum");
 
 export {
-	type primitive,
-	integer,
-	real,
-	text,
 	blob,
 	boolean,
 	datetime,
-	node,
 	enumeration as enum,
+	integer,
+	node,
+	type primitive,
+	real,
+	text,
 };

@@ -14,12 +14,24 @@ export async function evaluate(entrypoint: string) {
 		) {
 			found = true;
 			console.log(`--- Schema: ${key} ---`);
-			if (typeof (value as any).toString === "function") {
-				console.log((value as any).toString());
+			if (
+				typeof (value as unknown as { toString: () => string }).toString ===
+				"function"
+			) {
+				console.log(
+					(value as unknown as { toString: () => string }).toString(),
+				);
 			}
-			if (typeof (value as any).toTypeScriptInterface === "function") {
+			if (
+				typeof (value as unknown as { toTypeScriptInterface: () => string })
+					.toTypeScriptInterface === "function"
+			) {
 				console.log("\nTypeScript Interface:");
-				console.log((value as any).toTypeScriptInterface());
+				console.log(
+					(
+						value as unknown as { toTypeScriptInterface: () => string }
+					).toTypeScriptInterface(),
+				);
 			}
 			console.log("\nJSON Metadata:");
 			console.log(JSON.stringify(value, null, 2));
