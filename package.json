@@ -1,6 +1,9 @@
 {
 	"name": "@artefacto/schemascript",
 	"type": "module",
+	"files": [
+		"dist"
+	],
 	"private": false,
 	"version": "0.0.2",
 	"module": "./dist/artefact/schemascript/index.js",
