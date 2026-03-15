@@ -7,7 +7,7 @@ describe("Table Modifier E2E - SQL Generation", () => {
 	let cleanupFn: () => Promise<void>;
 
 	beforeEach(async () => {
-		const libraryPath = join(
+		const libraryPath = process.env.SCHEMASCRIPT_LIB_PATH || join(
 			process.cwd(),
 			"src/artefact/schemascript/index.ts",
 		);
@@ -52,7 +52,7 @@ describe("Unique Modifier E2E - SQL Generation", () => {
 	let cleanupFn: () => Promise<void>;
 
 	beforeEach(async () => {
-		const libraryPath = join(
+		const libraryPath = process.env.SCHEMASCRIPT_LIB_PATH || join(
 			process.cwd(),
 			"src/artefact/schemascript/index.ts",
 		);
@@ -139,7 +139,7 @@ describe("Optional Modifier E2E - SQL Generation", () => {
 	let cleanupFn: () => Promise<void>;
 
 	beforeEach(async () => {
-		const libraryPath = join(
+		const libraryPath = process.env.SCHEMASCRIPT_LIB_PATH || join(
 			process.cwd(),
 			"src/artefact/schemascript/index.ts",
 		);
@@ -218,7 +218,7 @@ describe("Identifier Modifier E2E - SQL Generation", () => {
 	let cleanupFn: () => Promise<void>;
 
 	beforeEach(async () => {
-		const libraryPath = join(
+		const libraryPath = process.env.SCHEMASCRIPT_LIB_PATH || join(
 			process.cwd(),
 			"src/artefact/schemascript/index.ts",
 		);
@@ -259,7 +259,7 @@ export const testTable = sqliteTable("test_table_identifier", {
 	});
 
 	test("generated SQL should correctly reflect non-autoincrement PRIMARY KEY", async () => {
-		const libraryPath = join(
+		const libraryPath = process.env.SCHEMASCRIPT_LIB_PATH || join(
 			process.cwd(),
 			"src/artefact/schemascript/index.ts",
 		);
@@ -294,7 +294,7 @@ describe("References Modifier E2E - SQL Generation", () => {
 	let cleanupFn: () => Promise<void>;
 
 	beforeEach(async () => {
-		const libraryPath = join(
+		const libraryPath = process.env.SCHEMASCRIPT_LIB_PATH || join(
 			process.cwd(),
 			"src/artefact/schemascript/index.ts",
 		);
@@ -351,7 +351,7 @@ describe("Default Modifier E2E - SQL Generation", () => {
 	let cleanupFn: () => Promise<void>;
 
 	beforeEach(async () => {
-		const libraryPath = join(
+		const libraryPath = process.env.SCHEMASCRIPT_LIB_PATH || join(
 			process.cwd(),
 			"src/artefact/schemascript/index.ts",
 		);
@@ -406,7 +406,7 @@ describe("Array Modifier E2E - SQL Generation", () => {
 	let cleanupFn: () => Promise<void>;
 
 	beforeEach(async () => {
-		const libraryPath = join(
+		const libraryPath = process.env.SCHEMASCRIPT_LIB_PATH || join(
 			process.cwd(),
 			"src/artefact/schemascript/index.ts",
 		);
