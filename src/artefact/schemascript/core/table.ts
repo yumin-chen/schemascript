@@ -8,6 +8,7 @@ import {
 	text,
 } from "@/data/proxies/sqlite";
 import { field } from "./field";
+import { register } from "./registry";
 import type { SchemaBuilder } from "./schema";
 
 function Table(name: string, schemaBuilder: SchemaBuilder) {
@@ -161,7 +162,11 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 		sqliteColumns[key] = builder;
 	}
 
-	return sqliteTable(name, sqliteColumns);
+	const drizzleTable = sqliteTable(name, sqliteColumns);
+
+	register({ alias: name, table: drizzleTable, fields });
+
+	return drizzleTable;
 }
 
 export { Table };
