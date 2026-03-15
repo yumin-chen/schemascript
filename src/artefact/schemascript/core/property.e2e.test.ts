@@ -7,7 +7,7 @@ describe("Modifiers E2E (SQL Generation)", () => {
 	let cleanupFn: () => Promise<void>;
 
 	beforeEach(async () => {
-		const libraryPath = join(
+		const libraryPath = process.env.SCHEMASCRIPT_LIB_PATH || join(
 			process.cwd(),
 			"src/artefact/schemascript/index.ts",
 		);

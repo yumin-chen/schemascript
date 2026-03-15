@@ -3,7 +3,9 @@ image: oven/bun:latest
 stages:
   - test
   - build
+  - publish-dry-run
   - publish
+  - test-registry
 
 variables:
   BUN_INSTALL_DIR: /usr/local/bin
@@ -33,7 +35,23 @@ build:
       - dist/
       - out/
 
-publish:
+publish:dry-run:
+  stage: publish-dry-run
+  script:
+    - |
+      if [ -z "$NPM_TOKEN" ]; then
+        echo "NPM_TOKEN is not set, skipping publish dry-run"
+        exit 1
+      fi
+      echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      bun publish --dry-run
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: always
+    - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+/'
+      when: always
+
+publish:latest:
   stage: publish
   script:
     - |
@@ -46,8 +64,34 @@ publish:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+/'
       when: always
+
+publish:alpha:
+  stage: publish
+  script:
+    - |
+      if [ -z "$NPM_TOKEN" ]; then
+        echo "NPM_TOKEN is not set, skipping publish"
+        exit 1
+      fi
+      echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      bun publish --tag alpha --access public
+  rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - package.json
       when: manual
       allow_failure: true
+
+test-registry:
+  stage: test-registry
+  script:
+    - mkdir temp_registry_test
+    - cd temp_registry_test
+    - bun init -y
+    - bun add @artefacto/schemascript@alpha drizzle-orm drizzle-kit @types/bun
+    - cd ..
+    - cp tsconfig.json biome.json temp_registry_test/
+    - cp -r src temp_registry_test/
+    - cd temp_registry_test
+    - SCHEMASCRIPT_LIB_PATH=@artefacto/schemascript bun test src/artefact/schemascript/core/*.e2e.test.ts
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: on_success
