@@ -7,10 +7,9 @@ describe("Modifiers E2E (SQL Generation)", () => {
 	let cleanupFn: () => Promise<void>;
 
 	beforeEach(async () => {
-		const libraryPath = join(
-			process.cwd(),
-			"src/artefact/schemascript/index.ts",
-		);
+		const libraryPath =
+			process.env.SCHEMASCRIPT_LIB_IMPORT ||
+			join(process.cwd(), "src/artefact/schemascript/index.ts");
 		const schemaContent = `
 import { field, Table } from "${libraryPath}";
 

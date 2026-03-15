@@ -33,21 +33,45 @@ build:
       - dist/
       - out/
 
+publish:dry-run:
+  stage: build
+  script:
+    - bun run publish --dry-run
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
 publish:
   stage: publish
   script:
-    - |
-      if [ -z "$NPM_TOKEN" ]; then
-        echo "NPM_TOKEN is not set, skipping publish"
-        exit 1
-      fi
-      echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
-      bun publish --access public
+    - bun run publish
   rules:
     - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+/'
       when: always
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - package.json
+      when: manual
+      allow_failure: true
+
+publish:alpha:
+  stage: publish
+  script:
+    - bun run publish --tag alpha
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
+      allow_failure: true
+
+verify:alpha:
+  stage: publish
+  needs: ["publish:alpha"]
+  script:
+    - mkdir verify-alpha && cd verify-alpha
+    - bun init -y
+    - bun add @artefacto/schemascript@alpha
+    - SCHEMASCRIPT_LIB_IMPORT="@artefacto/schemascript" bun test ../src/artefact/schemascript/core/*.e2e.test.ts
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
       when: manual
       allow_failure: true
