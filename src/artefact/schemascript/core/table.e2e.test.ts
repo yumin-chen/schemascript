@@ -7,10 +7,9 @@ describe("Table Modifier E2E - SQL Generation", () => {
 	let cleanupFn: () => Promise<void>;
 
 	beforeEach(async () => {
-		const libraryPath = join(
-			process.cwd(),
-			"src/artefact/schemascript/index.ts",
-		);
+		const libraryPath =
+			process.env.SCHEMASCRIPT_LIB_PATH ||
+			join(process.cwd(), "src/artefact/schemascript/index.ts");
 		const schemaContent = `
 import { field, Table } from "${libraryPath}";
 
@@ -52,10 +51,9 @@ describe("Unique Modifier E2E - SQL Generation", () => {
 	let cleanupFn: () => Promise<void>;
 
 	beforeEach(async () => {
-		const libraryPath = join(
-			process.cwd(),
-			"src/artefact/schemascript/index.ts",
-		);
+		const libraryPath =
+			process.env.SCHEMASCRIPT_LIB_PATH ||
+			join(process.cwd(), "src/artefact/schemascript/index.ts");
 		const schemaContent = `
 import { field, Table } from "${libraryPath}";
 
@@ -139,10 +137,9 @@ describe("Optional Modifier E2E - SQL Generation", () => {
 	let cleanupFn: () => Promise<void>;
 
 	beforeEach(async () => {
-		const libraryPath = join(
-			process.cwd(),
-			"src/artefact/schemascript/index.ts",
-		);
+		const libraryPath =
+			process.env.SCHEMASCRIPT_LIB_PATH ||
+			join(process.cwd(), "src/artefact/schemascript/index.ts");
 		const schemaContent = `
 import { field, Table } from "${libraryPath}";
 
@@ -218,10 +215,9 @@ describe("Identifier Modifier E2E - SQL Generation", () => {
 	let cleanupFn: () => Promise<void>;
 
 	beforeEach(async () => {
-		const libraryPath = join(
-			process.cwd(),
-			"src/artefact/schemascript/index.ts",
-		);
+		const libraryPath =
+			process.env.SCHEMASCRIPT_LIB_PATH ||
+			join(process.cwd(), "src/artefact/schemascript/index.ts");
 		const schemaContent = `
 import { field, Table } from "${libraryPath}";
 
@@ -259,10 +255,9 @@ export const testTable = sqliteTable("test_table_identifier", {
 	});
 
 	test("generated SQL should correctly reflect non-autoincrement PRIMARY KEY", async () => {
-		const libraryPath = join(
-			process.cwd(),
-			"src/artefact/schemascript/index.ts",
-		);
+		const libraryPath =
+			process.env.SCHEMASCRIPT_LIB_PATH ||
+			join(process.cwd(), "src/artefact/schemascript/index.ts");
 		const schemaContent = `
 import { field, Table } from "${libraryPath}";
 
@@ -351,10 +346,9 @@ describe("Default Modifier E2E - SQL Generation", () => {
 	let cleanupFn: () => Promise<void>;
 
 	beforeEach(async () => {
-		const libraryPath = join(
-			process.cwd(),
-			"src/artefact/schemascript/index.ts",
-		);
+		const libraryPath =
+			process.env.SCHEMASCRIPT_LIB_PATH ||
+			join(process.cwd(), "src/artefact/schemascript/index.ts");
 		const schemaContent = `
 import { Table } from "${libraryPath}";
 import { sql } from "@/data/proxies/sqlite";
@@ -406,10 +400,9 @@ describe("Array Modifier E2E - SQL Generation", () => {
 	let cleanupFn: () => Promise<void>;
 
 	beforeEach(async () => {
-		const libraryPath = join(
-			process.cwd(),
-			"src/artefact/schemascript/index.ts",
-		);
+		const libraryPath =
+			process.env.SCHEMASCRIPT_LIB_PATH ||
+			join(process.cwd(), "src/artefact/schemascript/index.ts");
 		const schemaContent = `
 import { Table } from "${libraryPath}";
 

@@ -4,6 +4,7 @@ stages:
   - test
   - build
   - publish
+  - verify
 
 variables:
   BUN_INSTALL_DIR: /usr/local/bin
@@ -46,8 +47,40 @@ publish:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+/'
       when: always
+
+publish:dry-run:
+  stage: publish
+  script:
+    - bun publish --dry-run
+  rules:
+    - if: '$CI_COMMIT_TAG !~ /^v\d+\.\d+\.\d+/'
+
+publish:alpha:
+  stage: publish
+  script:
+    - |
+      if [ -z "$NPM_TOKEN" ]; then
+        echo "NPM_TOKEN is not set, skipping publish"
+        exit 1
+      fi
+      echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      bun publish --tag alpha --access public
+  rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - package.json
+      when: manual
+      allow_failure: true
+
+test:e2e:published:
+  stage: verify
+  needs:
+    - job: publish:alpha
+  script:
+    - mkdir e2e-test
+    - cd e2e-test
+    - bun init -y
+    - bun add @artefacto/schemascript@alpha
+    - SCHEMASCRIPT_LIB_PATH=@artefacto/schemascript bun test ../src/artefact/schemascript/core/smoke.e2e.test.ts
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
       when: manual
       allow_failure: true
