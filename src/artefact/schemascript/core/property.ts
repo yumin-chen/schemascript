@@ -334,6 +334,7 @@ interface PropertyBuilder<
 	unique(): PropertyBuilder<TypeName, JavaScriptType, EnumOptionType>;
 	array(): PropertyBuilder<TypeName, JavaScriptType[], EnumOptionType>;
 	identifier(
+		this: PropertyBuilder<Exclude<TypeName, "enum">, JavaScriptType, EnumOptionType>,
 		config?: TypeName extends "integer" ? { autoIncrement: boolean } : never,
 	): PropertyBuilder<TypeName, JavaScriptType, EnumOptionType>;
 	default(
@@ -363,7 +364,7 @@ function makeBuilder<
 	builder.unique = () => makeBuilder(property.unique());
 	builder.array = () => makeBuilder(property.array());
 	builder.identifier = (config?: any) =>
-		makeBuilder(property.identifier(config) as any);
+		makeBuilder((property as any).identifier(config));
 	builder.default = (value: any) => makeBuilder(property.default(value));
 	builder.references = (ref: any, actions?: any) =>
 		makeBuilder(property.references(ref, actions));
