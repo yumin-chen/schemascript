@@ -10,6 +10,23 @@ import {
 import { field } from "./field";
 import type { SchemaBuilder } from "./schema";
 
+const registry = new Map<string, any>();
+
+function table(name: string) {
+	return new Proxy(
+		{},
+		{
+			get(_target, prop) {
+				const registeredTable = registry.get(name);
+				if (!registeredTable) {
+					throw new Error(`Table "${name}" not found in registry.`);
+				}
+				return registeredTable[prop];
+			},
+		},
+	) as any;
+}
+
 function Table(name: string, schemaBuilder: SchemaBuilder) {
 	const rawFields = schemaBuilder(field);
 	const fields = Object.fromEntries(
@@ -161,7 +178,34 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 		sqliteColumns[key] = builder;
 	}
 
-	return sqliteTable(name, sqliteColumns);
+	const t = sqliteTable(name, sqliteColumns);
+	registry.set(name, t);
+
+	// Attach Schemascript property metadata to the Drizzle table columns
+	// This ensures that Table().authorId has the .reference property
+	for (const [key, prop] of Object.entries(fields)) {
+		const column = t[key as keyof typeof t];
+		if (column) {
+			Object.assign(column, {
+				get type() { return prop.type; },
+				get name() { return prop.name; },
+				get enumConfigs() { return prop.enumConfigs; },
+				get isOptional() { return prop.isOptional; },
+				get isUnique() { return prop.isUnique; },
+				get isArray() { return prop.isArray; },
+				get isIdentifier() { return prop.isIdentifier; },
+				get isAutoIncrement() { return prop.isAutoIncrement; },
+				get reference() { return prop.reference; },
+				get hasDefault() { return prop.hasDefault; },
+				get defaultValue() { return prop.defaultValue; },
+				toString: () => prop.toString(),
+				toTypeScriptType: () => prop.toTypeScriptType(),
+				toJSON: () => prop.toJSON(),
+			});
+		}
+	}
+
+	return t;
 }
 
-export { Table };
+export { Table, table };
