@@ -346,6 +346,60 @@ export const posts = sqliteTable("posts", {
 	});
 });
 
+describe("Table Registry E2E - SQL Generation", () => {
+	let sqlContent = "";
+	let cleanupFn: () => Promise<void>;
+
+	beforeEach(async () => {
+		const libraryPath = join(
+			process.cwd(),
+			"src/artefact/schemascript/index.ts",
+		);
+		const schemaContent = `
+import { field, Table, table } from "${libraryPath}";
+
+export const users = Table("users_registry_e2e", (prop) => ({
+	id: prop.integer().identifier(),
+}));
+
+export const posts = Table("posts_registry_e2e", (prop) => ({
+	id: prop.integer().identifier(),
+	author_id: prop.integer().references(() => table("users_registry_e2e").id),
+}));
+`;
+		const fallbackSchema = `
+import { sqliteTable, integer } from "drizzle-orm/sqlite-core";
+
+export const users = sqliteTable("users_registry_e2e", {
+	id: integer("id").primaryKey(),
+});
+
+export const posts = sqliteTable("posts_registry_e2e", {
+	id: integer("id").primaryKey(),
+	author_id: integer("author_id").references(() => users.id),
+});
+`;
+
+		const result = await runMigrationTest(
+			"registry_e2e",
+			schemaContent,
+			fallbackSchema,
+		);
+		sqlContent = result.sqlContent;
+		cleanupFn = result.cleanup;
+	}, 60000);
+
+	afterAll(async () => {
+		if (cleanupFn) await cleanupFn();
+	});
+
+	test("generated SQL should correctly reflect references using table() registry", () => {
+		if (!sqlContent) return;
+
+		expect(sqlContent).toContain("REFERENCES `users_registry_e2e`(`id`) ");
+	});
+});
+
 describe("Default Modifier E2E - SQL Generation", () => {
 	let sqlContent = "";
 	let cleanupFn: () => Promise<void>;

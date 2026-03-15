@@ -10,6 +10,16 @@ import {
 import { field } from "./field";
 import type { SchemaBuilder } from "./schema";
 
+const tableRegistry = new Map<string, any>();
+
+function table(name: string) {
+	const t = tableRegistry.get(name);
+	if (!t) {
+		throw new Error(`Table "${name}" not found in registry.`);
+	}
+	return t;
+}
+
 function Table(name: string, schemaBuilder: SchemaBuilder) {
 	const rawFields = schemaBuilder(field);
 	const fields = Object.fromEntries(
@@ -161,7 +171,9 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 		sqliteColumns[key] = builder;
 	}
 
-	return sqliteTable(name, sqliteColumns);
+	const t = sqliteTable(name, sqliteColumns);
+	tableRegistry.set(name, t);
+	return t;
 }
 
-export { Table };
+export { Table, table };
