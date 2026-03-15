@@ -3,7 +3,9 @@ image: oven/bun:latest
 stages:
   - test
   - build
+  - publish-dry-run
   - publish
+  - verify
 
 variables:
   BUN_INSTALL_DIR: /usr/local/bin
@@ -33,7 +35,15 @@ build:
       - dist/
       - out/
 
-publish:
+publish:dry-run:
+  stage: publish-dry-run
+  script:
+    - bun publish --dry-run
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+publish:latest:
   stage: publish
   script:
     - |
@@ -46,8 +56,28 @@ publish:
   rules:
     - if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+/'
       when: always
+
+publish:alpha:
+  stage: publish
+  script:
+    - |
+      if [ -z "$NPM_TOKEN" ]; then
+        echo "NPM_TOKEN is not set, skipping publish"
+        exit 1
+      fi
+      echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      bun publish --access public --tag alpha
+  rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - package.json
       when: manual
+      allow_failure: true
+
+verify:alpha:
+  stage: verify
+  script:
+    - bun run scripts/verify-pkg.ts @artefacto/schemascript@alpha
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: on_success
+      needs: ["publish:alpha"]
       allow_failure: true
