@@ -11,6 +11,9 @@
 	"exports": {
 		".": "./dist/artefact/schemascript/index.js"
 	},
+	"files": [
+		"dist"
+	],
 	"scripts": {
 		"fix": "bun run check",
 		"check": "bun x --bun @biomejs/biome check --fix .",
