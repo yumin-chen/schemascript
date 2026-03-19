@@ -1,8 +1,13 @@
-import { describe, expect, test } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
 import { sql } from "@/data/proxies/sqlite";
+import { SchemaRegistry, table } from "./registry";
 import { Table } from "./table";
 
 describe("Table Integration", () => {
+	beforeEach(() => {
+		SchemaRegistry.clear();
+	});
+
 	test("should correctly map all unique primitive types to Drizzle columns", () => {
 		const MyTable = Table("unique_integration", (prop) => ({
 			int_uniq: prop.integer().unique(),
@@ -176,5 +181,33 @@ describe("Array Modifier Integration", () => {
 		)[Symbol.for("drizzle:Columns")];
 
 		expect(columns.roles.dataType).toBe("json");
+	});
+});
+
+describe("Registry Integration", () => {
+	test("should correctly retrieve table and use it for references", () => {
+		Table("registry_parent", (prop) => ({
+			id: prop.integer().identifier(),
+		}));
+
+		const ChildTable = Table("registry_child", (prop) => ({
+			id: prop.integer().identifier(),
+			parentId: prop.integer().references(() => table("registry_parent").id),
+		}));
+
+		const inlineFks = (
+			ChildTable as unknown as {
+				[key: symbol]: any[];
+			}
+		)[Symbol.for("drizzle:SQLiteInlineForeignKeys")];
+
+		expect(inlineFks).toBeDefined();
+		expect(inlineFks.length).toBe(1);
+		expect(inlineFks[0].reference().foreignTable).toBeDefined();
+		expect(
+			(inlineFks[0].reference().foreignTable as any)[
+				Symbol.for("drizzle:Name")
+			],
+		).toBe("registry_parent");
 	});
 });

@@ -7,9 +7,12 @@ export const SchemaRegistry = {
 	get(name: string): any {
 		return tables.get(name);
 	},
+	clear() {
+		tables.clear();
+	},
 };
 
-export function table(name: string): any {
+export function table<T = any>(name: string): T {
 	const t = SchemaRegistry.get(name);
 	if (!t) {
 		throw new Error(`Table "${name}" not found in registry.`);

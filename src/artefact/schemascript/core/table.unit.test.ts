@@ -1,9 +1,13 @@
-import { describe, expect, test } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
 import { field } from "./field";
-import { table } from "./registry";
+import { SchemaRegistry, table } from "./registry";
 import { Table } from "./table";
 
 describe("Table", () => {
+	beforeEach(() => {
+		SchemaRegistry.clear();
+	});
+
 	test("should create a Drizzle table with correct columns", () => {
 		const _UserTable = Table("users", (prop) => ({
 			id: prop.integer(),
