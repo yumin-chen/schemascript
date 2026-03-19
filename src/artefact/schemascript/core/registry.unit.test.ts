@@ -20,6 +20,12 @@ describe("Table Registry", () => {
 		expect(() => nonExistent.id).toThrow('Table "non_existent" not found in registry.');
 	});
 
+	test("table() should throw error for Symbols if table not found", () => {
+		const nonExistent = table("non_existent_symbol");
+		const sym = Symbol("test");
+		expect(() => nonExistent[sym]).toThrow('Table "non_existent_symbol" not found in registry.');
+	});
+
 	test("table() should work in .references() with forward references", () => {
 		// PostTable references UserTable which is defined later
 		const PostTable = Table("posts", (prop) => ({
@@ -37,17 +43,27 @@ describe("Table Registry", () => {
 		expect(ref).toBe(UserTable.id);
 	});
 
-    test("table() should return the same table from registry", () => {
-        const MyTable = Table("my_table_2", (prop) => ({
-            id: prop.integer().identifier(),
-        }));
+	test("table() should return the same table from registry", () => {
+		const MyTable = Table("my_table_2", (prop) => ({
+			id: prop.integer().identifier(),
+		}));
 
-        const t1 = table("my_table_2");
-        const t2 = table("my_table_2");
+		const t1 = table("my_table_2");
+		const t2 = table("my_table_2");
 
-        // They are proxies, but they should resolve to the same underlying object properties
-        expect(t1.id).toBe(MyTable.id);
-        expect(t2.id).toBe(MyTable.id);
-        expect(t1.id).toBe(t2.id);
-    });
+		// They are proxies, but they should resolve to the same underlying object properties
+		expect(t1.id).toBe(MyTable.id);
+		expect(t2.id).toBe(MyTable.id);
+		expect(t1.id).toBe(t2.id);
+	});
+
+	test("table() should correctly resolve metadata attached to columns", () => {
+		const UserTable = Table("users_metadata", (prop) => ({
+			id: prop.integer().identifier(),
+		}));
+
+		const retrieved = table("users_metadata");
+		expect(retrieved.id.isIdentifier).toBe(true);
+		expect(retrieved.id.type).toBe("integer");
+	});
 });
