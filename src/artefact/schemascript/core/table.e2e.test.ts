@@ -398,6 +398,49 @@ export const posts = sqliteTable("posts_registry_e2e", {
 
 		expect(sqlContent).toContain("REFERENCES `users_registry_e2e`(`id`) ");
 	});
+
+	test("generated SQL should correctly reflect complex schema with multiple table() lookups", async () => {
+		const libraryPath = join(
+			process.cwd(),
+			"src/artefact/schemascript/index.ts",
+		);
+		const schemaContent = `
+import { field, Table, table } from "${libraryPath}";
+
+export const tenants = Table("tenants_e2e", (p) => ({ id: p.integer().identifier() }));
+export const users = Table("users_e2e", (p) => ({
+	id: p.integer().identifier(),
+	tenantId: p.integer().references(() => table("tenants_e2e").id),
+}));
+export const profiles = Table("profiles_e2e", (p) => ({
+	id: p.integer().identifier(),
+	userId: p.integer().references(() => table("users_e2e").id),
+}));
+`;
+		const fallbackSchema = `
+import { sqliteTable, integer } from "drizzle-orm/sqlite-core";
+
+const tenants = sqliteTable("tenants_e2e", { id: integer("id").primaryKey() });
+const users = sqliteTable("users_e2e", {
+	id: integer("id").primaryKey(),
+	tenantId: integer("tenantId").references(() => tenants.id),
+});
+const profiles = sqliteTable("profiles_e2e", {
+	id: integer("id").primaryKey(),
+	userId: integer("userId").references(() => users.id),
+});
+`;
+
+		const result = await runMigrationTest(
+			"complex_registry_e2e",
+			schemaContent,
+			fallbackSchema,
+		);
+
+		expect(result.sqlContent).toContain("REFERENCES `tenants_e2e`(`id`) ");
+		expect(result.sqlContent).toContain("REFERENCES `users_e2e`(`id`) ");
+		await result.cleanup();
+	}, 60000);
 });
 
 describe("Default Modifier E2E - SQL Generation", () => {

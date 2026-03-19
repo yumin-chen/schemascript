@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { sql } from "@/data/proxies/sqlite";
-import { Table } from "./table";
+import { Table, table } from "./table";
 
 describe("Table Integration", () => {
 	test("should correctly map all unique primitive types to Drizzle columns", () => {
@@ -86,6 +86,57 @@ describe("References Integration", () => {
 
 		const fk = inlineFks[0];
 		expect(fk.onDelete).toBe("cascade");
+	});
+
+	test("should correctly map references using table() registry lookup", () => {
+		const ParentTable = Table("parents_registry", (prop) => ({
+			id: prop.integer().identifier(),
+		}));
+
+		const ChildTable = Table("children_registry", (prop) => ({
+			id: prop.integer().identifier(),
+			parentId: prop.integer().references(() => table("parents_registry").id),
+		}));
+
+		const inlineFks = (
+			ChildTable as unknown as {
+				[key: symbol]: any[];
+			}
+		)[Symbol.for("drizzle:SQLiteInlineForeignKeys")];
+
+		expect(inlineFks).toBeDefined();
+		expect(inlineFks.length).toBeGreaterThan(0);
+		// In Drizzle, foreignTable might be accessed differently or might be internal.
+		// Let's check the structure of the first inline FK.
+		const fk = inlineFks[0];
+		expect(fk.reference).toBeDefined();
+		// In some versions of Drizzle, it's .table
+		expect(fk.reference().foreignTable).toBe(ParentTable);
+	});
+
+	test("should handle multiple references using table() registry in a single table", () => {
+		const User = Table("user_mult_ref", (prop) => ({
+			id: prop.integer().identifier(),
+		}));
+		const Tenant = Table("tenant_mult_ref", (prop) => ({
+			id: prop.integer().identifier(),
+		}));
+
+		const UserTenant = Table("user_tenant_mult_ref", (prop) => ({
+			userId: prop.integer().references(() => table("user_mult_ref").id),
+			tenantId: prop.integer().references(() => table("tenant_mult_ref").id),
+		}));
+
+		const inlineFks = (
+			UserTenant as unknown as {
+				[key: symbol]: any[];
+			}
+		)[Symbol.for("drizzle:SQLiteInlineForeignKeys")];
+
+		expect(inlineFks).toBeDefined();
+		expect(inlineFks.length).toBe(2);
+		expect(inlineFks.some((fk) => fk.reference().foreignTable === User)).toBe(true);
+		expect(inlineFks.some((fk) => fk.reference().foreignTable === Tenant)).toBe(true);
 	});
 });
 
