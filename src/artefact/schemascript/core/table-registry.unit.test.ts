@@ -22,6 +22,13 @@ describe("Table Registry", () => {
 		);
 	});
 
+	test("should throw error if duplicate table name is registered", () => {
+		Table("duplicate_test", (prop) => ({ id: prop.integer().identifier() }));
+		expect(() =>
+			Table("duplicate_test", (prop) => ({ id: prop.integer().identifier() })),
+		).toThrow('Table with name "duplicate_test" already exists in the registry');
+	});
+
 	test("should handle forward references with table() API", () => {
 		// PostTable references UserTable before UserTable is defined
 		const PostTable = Table("posts_registry_test", (prop) => ({

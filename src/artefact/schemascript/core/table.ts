@@ -8,9 +8,8 @@ import {
 	text,
 } from "@/data/proxies/sqlite";
 import { field } from "./field";
+import { getTableRegistry, setTableRegistry } from "./registry";
 import type { SchemaBuilder } from "./schema";
-
-const registry: Record<string, any> = {};
 
 /**
  * Retrieves a table from the registry by its name.
@@ -22,7 +21,7 @@ function table(name: string): any {
 		{},
 		{
 			get(_target, prop) {
-				const t = registry[name];
+				const t = getTableRegistry(name);
 				if (!t) {
 					throw new Error(`Table "${name}" not found in registry`);
 				}
@@ -33,6 +32,10 @@ function table(name: string): any {
 }
 
 function Table(name: string, schemaBuilder: SchemaBuilder) {
+	if (getTableRegistry(name)) {
+		throw new Error(`Table with name "${name}" already exists in the registry`);
+	}
+
 	const rawFields = schemaBuilder(field);
 	const fields = Object.fromEntries(
 		Object.entries(rawFields).map(([key, prop]) => [
@@ -184,7 +187,7 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 	}
 
 	const t = sqliteTable(name, sqliteColumns);
-	registry[name] = t;
+	setTableRegistry(name, t);
 	return t;
 }
 
