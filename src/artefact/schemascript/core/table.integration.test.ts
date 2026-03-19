@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { sql } from "@/data/proxies/sqlite";
-import { SchemaRegistry, table } from "./registry";
+import { clearTableRegistry, table } from "./registry";
 import { Table } from "./table";
 
 describe("Table Integration", () => {
 	beforeEach(() => {
-		SchemaRegistry.clear();
+		clearTableRegistry();
 	});
 
 	test("should correctly map all unique primitive types to Drizzle columns", () => {

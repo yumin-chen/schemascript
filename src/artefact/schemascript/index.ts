@@ -1,4 +1,4 @@
-export * from "./core/registry";
+export { table } from "./core/registry";
 export * from "./core/schema";
 export * from "./core/table";
 export { value } from "./core/value";

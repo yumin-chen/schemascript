@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { field } from "./field";
-import { SchemaRegistry, table } from "./registry";
+import { clearTableRegistry, table } from "./registry";
 import { Table } from "./table";
 
 describe("Table", () => {
 	beforeEach(() => {
-		SchemaRegistry.clear();
+		clearTableRegistry();
 	});
 
 	test("should create a Drizzle table with correct columns", () => {

@@ -8,7 +8,7 @@ import {
 	text,
 } from "@/data/proxies/sqlite";
 import { field } from "./field";
-import { SchemaRegistry } from "./registry";
+import { setTableRegistry } from "./registry";
 import type { SchemaBuilder } from "./schema";
 
 function Table(name: string, schemaBuilder: SchemaBuilder) {
@@ -163,7 +163,7 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 	}
 
 	const table = sqliteTable(name, sqliteColumns);
-	SchemaRegistry.register(name, table);
+	setTableRegistry(name, table);
 	return table;
 }
 
