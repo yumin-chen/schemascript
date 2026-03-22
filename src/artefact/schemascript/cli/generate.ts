@@ -14,7 +14,7 @@ export async function generate(
 	try {
 		await compile(entrypoint, tempOutDir);
 
-		const filename = basename(entrypoint, extname(entrypoint)) + ".js";
+		const filename = `${basename(entrypoint, extname(entrypoint))}.js`;
 		const actualSchemaPath = join(tempOutDir, filename);
 
 		console.info(`Generating migrations for ${actualSchemaPath}...`);

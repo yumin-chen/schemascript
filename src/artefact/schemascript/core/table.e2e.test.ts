@@ -411,7 +411,7 @@ describe("Array Modifier E2E - SQL Generation", () => {
 			"src/artefact/schemascript/index.ts",
 		);
 		const schemaContent = `
-import { Table } from "${libraryPath}";
+import { Table, table } from "${libraryPath}";
 
 export const testTable = Table("test_table_array", (prop) => ({
 	tags: prop.text().array(),
@@ -490,5 +490,61 @@ export const testTable = sqliteTable("test_table_array", {
 		expect(colLine?.toLowerCase()).toContain("blob");
 		expect(colLine?.toUpperCase()).toContain("DEFAULT");
 		expect(colLine).toContain('["a","b"]');
+	});
+});
+
+describe("Table Registry E2E - SQL Generation", () => {
+	let sqlContent = "";
+	let cleanupFn: () => Promise<void>;
+
+	beforeEach(async () => {
+		const libraryPath = join(
+			process.cwd(),
+			"src/artefact/schemascript/index.ts",
+		);
+		const schemaContent = `
+import { Table, table } from "${libraryPath}";
+
+export const orders = Table("orders", (prop) => ({
+	id: prop.integer().identifier(),
+	customer_id: prop.integer().references(() => table("customers").id),
+}));
+
+export const customers = Table("customers", (prop) => ({
+	id: prop.integer().identifier(),
+	name: prop.text(),
+}));
+`;
+		const fallbackSchema = `
+import { sqliteTable, integer, text } from "drizzle-orm/sqlite-core";
+
+export const customers = sqliteTable("customers", {
+	id: integer("id").primaryKey(),
+	name: text("name").notNull(),
+});
+
+export const orders = sqliteTable("orders", {
+	id: integer("id").primaryKey(),
+	customer_id: integer("customer_id").references(() => customers.id),
+});
+`;
+
+		const result = await runMigrationTest(
+			"registry_e2e",
+			schemaContent,
+			fallbackSchema,
+		);
+		sqlContent = result.sqlContent;
+		cleanupFn = result.cleanup;
+	}, 60000);
+
+	afterAll(async () => {
+		if (cleanupFn) await cleanupFn();
+	});
+
+	test("generated SQL should correctly reflect references using table() API", () => {
+		if (!sqlContent) return;
+
+		expect(sqlContent).toContain("REFERENCES `customers`(`id`) ");
 	});
 });

@@ -8,9 +8,34 @@ import {
 	text,
 } from "@/data/proxies/sqlite";
 import { field } from "./field";
+import { getTableRegistry, setTableRegistry } from "./registry";
 import type { SchemaBuilder } from "./schema";
 
+/**
+ * Retrieves a table from the registry by its name.
+ * Returns a Proxy to the table to support forward references in lazy contexts.
+ * @param name The name of the table to retrieve.
+ */
+function table(name: string): any {
+	return new Proxy(
+		{},
+		{
+			get(_target, prop) {
+				const t = getTableRegistry(name);
+				if (!t) {
+					throw new Error(`Table "${name}" not found in registry`);
+				}
+				return t[prop];
+			},
+		},
+	);
+}
+
 function Table(name: string, schemaBuilder: SchemaBuilder) {
+	if (getTableRegistry(name)) {
+		throw new Error(`Table with name "${name}" already exists in the registry`);
+	}
+
 	const rawFields = schemaBuilder(field);
 	const fields = Object.fromEntries(
 		Object.entries(rawFields).map(([key, prop]) => [
@@ -161,7 +186,9 @@ function Table(name: string, schemaBuilder: SchemaBuilder) {
 		sqliteColumns[key] = builder;
 	}
 
-	return sqliteTable(name, sqliteColumns);
+	const t = sqliteTable(name, sqliteColumns);
+	setTableRegistry(name, t);
+	return t;
 }
 
-export { Table };
+export { Table, table };

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { sql } from "@/data/proxies/sqlite";
-import { Table } from "./table";
+import { Table, table } from "./table";
 
 describe("Table Integration", () => {
 	test("should correctly map all unique primitive types to Drizzle columns", () => {
@@ -108,6 +108,61 @@ describe("Default Modifier Integration", () => {
 		expect(columns.text_def.default).toBe("default_text");
 		expect(columns.bool_def.default).toBe(true);
 		expect(columns.sql_def.default).toBeDefined();
+	});
+});
+
+describe("Registry Integration", () => {
+	test("should allow using table() API for references", () => {
+		Table("categories", (prop) => ({
+			id: prop.integer().identifier(),
+		}));
+
+		const Products = Table("products", (prop) => ({
+			id: prop.integer().identifier(),
+			category_id: prop
+				.integer()
+				.references(() => table("categories").id, { onDelete: "cascade" }),
+		}));
+
+		const inlineFks = (
+			Products as unknown as {
+				[key: symbol]: unknown[];
+			}
+		)[Symbol.for("drizzle:SQLiteInlineForeignKeys")];
+
+		expect(inlineFks).toBeDefined();
+		expect(inlineFks.length).toBeGreaterThan(0);
+
+		const fk = inlineFks[0] as any;
+		expect(fk.onDelete).toBe("cascade");
+		expect(fk.reference().foreignColumns[0].name).toBe("id");
+	});
+
+	test("should support circular references using table() API", () => {
+		const NodeA = Table("node_a", (prop) => ({
+			id: prop.integer().identifier(),
+			node_b_id: prop.integer().references(() => table("node_b").id),
+		}));
+
+		const NodeB = Table("node_b", (prop) => ({
+			id: prop.integer().identifier(),
+			node_a_id: prop.integer().references(() => table("node_a").id),
+		}));
+
+		const fksA = (
+			NodeA as unknown as {
+				[key: symbol]: any[];
+			}
+		)[Symbol.for("drizzle:SQLiteInlineForeignKeys")];
+
+		const fksB = (
+			NodeB as unknown as {
+				[key: symbol]: any[];
+			}
+		)[Symbol.for("drizzle:SQLiteInlineForeignKeys")];
+
+		expect(fksA[0].reference().foreignColumns[0].table[Symbol.for("drizzle:Name")]).toBe("node_b");
+		expect(fksB[0].reference().foreignColumns[0].table[Symbol.for("drizzle:Name")]).toBe("node_a");
 	});
 });
 
