@@ -1,8 +1,13 @@
-import { describe, expect, test } from "bun:test";
+import { beforeEach, describe, expect, test } from "bun:test";
 import { field } from "./field";
+import { clearTableRegistry, table } from "./registry";
 import { Table } from "./table";
 
 describe("Table", () => {
+	beforeEach(() => {
+		clearTableRegistry();
+	});
+
 	test("should create a Drizzle table with correct columns", () => {
 		const _UserTable = Table("users", (prop) => ({
 			id: prop.integer(),
@@ -189,5 +194,41 @@ describe("Table", () => {
 		expect(() => columns.status.mapFromDriverValue(99)).toThrow(
 			"Unknown enum value from driver: 99",
 		);
+	});
+
+	test("should register tables and allow retrieval via table()", () => {
+		const UserTable = Table("users_registry_test", (prop) => ({
+			id: prop.integer().identifier(),
+			name: prop.text(),
+		}));
+
+		const retrieved = table("users_registry_test");
+		expect(retrieved).toBe(UserTable);
+	});
+
+	test("should allow using table() in .references()", () => {
+		Table("parents", (prop) => ({
+			id: prop.integer().identifier(),
+		}));
+
+		const ChildTable = Table("children", (prop) => ({
+			id: prop.integer().identifier(),
+			parentId: prop.integer().references(() => table("parents").id),
+		}));
+
+		const inlineForeignKeys = (
+			ChildTable as unknown as {
+				[key: symbol]: any[];
+			}
+		)[Symbol.for("drizzle:SQLiteInlineForeignKeys")];
+
+		expect(inlineForeignKeys).toBeDefined();
+		expect(inlineForeignKeys.length).toBe(1);
+		expect(inlineForeignKeys[0].reference().foreignTable).toBeDefined();
+		expect(
+			(inlineForeignKeys[0].reference().foreignTable as any)[
+				Symbol.for("drizzle:Name")
+			],
+		).toBe("parents");
 	});
 });

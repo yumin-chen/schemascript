@@ -492,3 +492,57 @@ export const testTable = sqliteTable("test_table_array", {
 		expect(colLine).toContain('["a","b"]');
 	});
 });
+
+describe("Registry E2E - SQL Generation", () => {
+	let sqlContent = "";
+	let cleanupFn: () => Promise<void>;
+
+	beforeEach(async () => {
+		const libraryPath = join(
+			process.cwd(),
+			"src/artefact/schemascript/index.ts",
+		);
+		const schemaContent = `
+import { Table, table } from "${libraryPath}";
+
+export const users = Table("registry_users_e2e", (prop) => ({
+	id: prop.integer().identifier(),
+}));
+
+export const posts = Table("registry_posts_e2e", (prop) => ({
+	id: prop.integer().identifier(),
+	author_id: prop.integer().references(() => table("registry_users_e2e").id),
+}));
+`;
+		const fallbackSchema = `
+import { sqliteTable, integer } from "drizzle-orm/sqlite-core";
+
+export const users = sqliteTable("registry_users_e2e", {
+	id: integer("id").primaryKey(),
+});
+
+export const posts = sqliteTable("registry_posts_e2e", {
+	id: integer("id").primaryKey(),
+	author_id: integer("author_id").references(() => users.id),
+});
+`;
+
+		const result = await runMigrationTest(
+			"registry_e2e",
+			schemaContent,
+			fallbackSchema,
+		);
+		sqlContent = result.sqlContent;
+		cleanupFn = result.cleanup;
+	}, 60000);
+
+	afterAll(async () => {
+		if (cleanupFn) await cleanupFn();
+	});
+
+	test("generated SQL should correctly reflect references using table()", () => {
+		if (!sqlContent) return;
+
+		expect(sqlContent).toContain("REFERENCES `registry_users_e2e`(`id`)");
+	});
+});
